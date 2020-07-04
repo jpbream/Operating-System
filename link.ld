@@ -24,7 +24,18 @@ SECTIONS
 
     .data BLOCK(4K) : ALIGN(4K)
     {
+
+        start_ctors = .;
+        KEEP(*(.init_array));
+        KEEP(*(SORT(.init_array.*)));
+        end_ctors = .;
+
         *(.data)
+
+        start_dtors = .;
+        KEEP(*(.fini_array));
+        KEEP(*(SORT(.fini_array.*)));
+        end_dtors = .;
     }
 
     .bss BLOCK(4K) : ALIGN(4K)

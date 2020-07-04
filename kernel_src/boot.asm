@@ -31,13 +31,18 @@ stack_top:
 
 section .text
 global start
+
+extern init
+extern fini
 extern kernelMain
 
 start:
 
     mov esp, stack_top  ; create the stack pointer
 
+    call init           ; call global constructors
     call kernelMain     ; start the kernel
+    call fini           ; call global destructors (if the kernel ever leaves)
 
     ; if the system somehow gets here, put it in an infinite loop
     loop:
