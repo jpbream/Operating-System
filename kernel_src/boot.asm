@@ -41,6 +41,21 @@ start:
     mov esp, stack_top  ; create the stack pointer
 
     call init           ; call global constructors
+
+    ; the gdt has been constructed, so load it
+    gdt_storage:
+        dw 0    ; 2 bytes, size of the table
+        dd 0    ; 4 bytes, address of the table
+    
+    extern gdt  ; the global gdt object in the kernel
+    extern GDT_SIZE
+
+    mov eax, gdt ; store the address
+    mov [gdt_storage + 2], eax
+    mov ax, [GDT_SIZE] ; store the size
+    mov [gdt_storage], ax
+    lgdt [gdt_storage] ; store the table
+
     call kernelMain     ; start the kernel
     call fini           ; call global destructors (if the kernel ever leaves)
 
