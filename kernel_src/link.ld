@@ -1,7 +1,7 @@
 /* linker script to link the C kernel and the assembly
  multiboot file */
 
-ENTRY(start)
+ENTRY(_start)
 
 SECTIONS
 {

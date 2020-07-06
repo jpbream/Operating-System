@@ -30,31 +30,28 @@ stack_bottom:
 stack_top:
 
 section .text
-global start
+global _start
 
 extern init
 extern fini
 extern kernelMain
 
-start:
+_start:
 
     mov esp, stack_top  ; create the stack pointer
 
     call init           ; call global constructors
-
-    ; the gdt has been constructed, so load it
-    gdt_storage:
-        dw 0    ; 2 bytes, size of the table
-        dd 0    ; 4 bytes, address of the table
     
     extern gdt  ; the global gdt object in the kernel
-    extern GDT_SIZE
+    lgdt [gdt] ; store the table
 
-    mov eax, gdt ; store the address
-    mov [gdt_storage + 2], eax
-    mov ax, [GDT_SIZE] ; store the size
-    mov [gdt_storage], ax
-    lgdt [gdt_storage] ; store the table
+    extern idt ; the global interrupt descriptor table
+    lidt [idt] ; load the idt
+
+    extern InitPIC
+    call InitPIC ; initialize the PIC
+
+    sti ; enable interrupts
 
     call kernelMain     ; start the kernel
     call fini           ; call global destructors (if the kernel ever leaves)

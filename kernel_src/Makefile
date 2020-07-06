@@ -1,12 +1,12 @@
 
 OUTPUT = ..
 
-C_OPTIONS = -m32 -std=c99 -I include-freestanding-c99 -ffreestanding -nostdlib -fno-builtin -fno-exceptions -fno-leading-underscore
-CPP_OPTIONS = -m32 -std=c++17 -I include-freestanding-c++17 -ffreestanding -fno-use-cxa-atexit -nostdlib -fno-builtin -fno-rtti -fno-exceptions -fno-leading-underscore
+C_OPTIONS = -m32 -std=c99 -I include-freestanding-c99 -ffreestanding -nostdlib -fno-builtin -fno-exceptions
+CPP_OPTIONS = -m32 -std=c++17 -I include-freestanding-c++17 -ffreestanding -fno-use-cxa-atexit -nostdlib -fno-builtin -fno-rtti -fno-exceptions
 ASM_OPTIONS = -f elf
 LINK_OPTIONS = -melf_i386 -L $(OUTPUT)/lib/ -lgcc
 
-OBJECTS = boot.o kernel.o cdtors.o gdt.o
+OBJECTS = boot.o kernel.o cdtors.o gdt.o io.o print.o idt.o interrupts.o interrupt_handlers.o
 
 %.o: %.cpp
 	g++ -c -o $@ $< $(CPP_OPTIONS)

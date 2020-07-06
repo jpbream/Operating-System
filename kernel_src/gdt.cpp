@@ -1,28 +1,24 @@
 #include "gdt.h"
 
-extern "C" constexpr uint16_t GDT_SIZE = sizeof(GDT) - 1;
-
-GDT::GDT_Selector::GDT_Selector(uint32_t base, uint32_t limit, uint16_t flag) 
+GDT::GDT_Selector::GDT_Selector(uint32_t base, uint32_t limit, uint8_t access, uint8_t gran) 
 {
     
-    descriptor = 0;
+    this->base_lo = base & 0xFFFF;
+    this->base_mid = (base >> 16) & 0xFF;
+    this->base_hi = (base >> 24) & 0xFF;
 
-    // high 32 bits
-    descriptor |= (base & 0xFF000000);
-    descriptor |= ((flag & 0x0F00) << 12);
-    descriptor |= (limit & 0x000F0000);
-    descriptor |= ((flag & 0x00FF) << 8);
-    descriptor |= ((base & 0x00FF0000) >> 16);
-    descriptor <<= 32;
+    this->limit_lo = limit & 0xFFFF;
+    this->gran = (limit >> 16) & 0xF;
 
-    // low 32 bits
-    descriptor |= ((base & 0x0000FFFF) << 16);
-    descriptor |= (limit & 0x0000FFFF);
+    this->gran |= gran & 0xF0;
+    this->access = access;
 
 }
 
 GDT::GDT() 
-    : null(0, 0, 0), code(0, 0x000FFFFF, CODE_ACCESS | CODE_FLAGS), 
-    data(0, 0x000FFFFF, DATA_ACCESS | DATA_FLAGS)
+    : null(0, 0, 0, 0), code(0, 0xFFFFFFFF, 0x9A, 0xCF), 
+    data(0, 0xFFFFFFFF, 0x92, 0xCF)
 {
+    size = sizeof(GDT) - 1 - sizeof(uint16_t) - sizeof(uint32_t);
+    address = (uint32_t)this + sizeof(uint16_t) + sizeof(uint32_t);
 }
