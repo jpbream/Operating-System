@@ -6,7 +6,6 @@ static int y = 0;
 void printf(const char* str) {
 
     uint16_t* ptr = (uint16_t*)0xB8000;
-
     while (*str) {
 
         printChar(*str);
@@ -18,7 +17,7 @@ void printf(const char* str) {
 void printChar(char c) {
 
     uint16_t* ptr = (uint16_t*)0xB8000;
-    *(ptr + 80 * y + x) = (*(ptr + 80 * y + x) & 0xFF00) | c;
+    *(ptr + (80 * y) + x) = (*(ptr + (80 * y) + x) & 0xFF00) | c;
     
     x++;
     if (x == 80) {

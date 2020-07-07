@@ -41,18 +41,6 @@ _start:
     mov esp, stack_top  ; create the stack pointer
 
     call init           ; call global constructors
-    
-    extern gdt  ; the global gdt object in the kernel
-    lgdt [gdt] ; store the table
-
-    extern idt ; the global interrupt descriptor table
-    lidt [idt] ; load the idt
-
-    extern InitPIC
-    call InitPIC ; initialize the PIC
-
-    sti ; enable interrupts
-
     call kernelMain     ; start the kernel
     call fini           ; call global destructors (if the kernel ever leaves)
 

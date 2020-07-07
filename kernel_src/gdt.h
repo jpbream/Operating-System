@@ -3,28 +3,27 @@
 
 #include <stdint.h>
 
-#define CODE_ACCESS 0b10011010
-#define CODE_FLAGS ((0b0100) << 8)
-
-#define DATA_ACCESS 0b10010010
-#define DATA_FLAGS ((0b0100) << 8)
+#define KERNEL_CODE_ACCESS 0b10011010
+#define KERNEL_DATA_ACCESS 0b10010010
+#define KERNEL_LIMIT 0x00FFFFFF
+#define KERNEL_SEGMENT_FLAGS 0b11110100
 
 class GDT {
 
-public:
+private:
     
     class GDT_Selector {
 
-    public:
+    private:
         uint16_t limit_lo;
         uint16_t base_lo;
         uint8_t base_mid;
         uint8_t access;
-        uint8_t gran;
+        uint8_t flags;
         uint8_t base_hi;
 
     public:
-        GDT_Selector(uint32_t base, uint32_t limit, uint8_t access, uint8_t gran);
+        GDT_Selector(uint32_t base, uint32_t limit, uint8_t access, uint8_t flags);
 
     } __attribute__((packed));
 
@@ -32,14 +31,18 @@ public:
     uint32_t address;
 
     GDT_Selector null;
+    GDT_Selector unused;
     GDT_Selector code;
     GDT_Selector data;
 
 public:
 
     GDT();
+    uint16_t CodeSelector();
+    uint16_t DataSelector();
 
 } __attribute__((packed));
 
+extern "C" void ActivateGDT(GDT* gdt);
 
 #endif

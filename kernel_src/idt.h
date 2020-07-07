@@ -2,6 +2,12 @@
 #define _IDT_H_
 
 #include <stdint.h>
+#include "gdt.h"
+#include "port.h"
+
+void InitPIC();
+extern "C" void EnableInterrupts();
+extern "C" void DisableInterrupts();
 
 class IDT {
 
@@ -28,8 +34,10 @@ private:
     );
 
 public:
-    IDT();
+    IDT(GDT& gdt);
 
 } __attribute__((packed));
+
+extern "C" void ActivateIDT(IDT* idt);
 
 #endif
