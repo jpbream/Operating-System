@@ -1,6 +1,13 @@
 #include "gdt.h"
 #include "print.h"
 
+#define KERNEL_CODE_ACCESS 0b10011010
+#define KERNEL_DATA_ACCESS 0b10010010
+#define KERNEL_LIMIT 0x00FFFFFF
+#define KERNEL_SEGMENT_FLAGS 0b11110100
+
+extern "C" void ActivateGDT(void* gdt);
+
 GDT::GDT_Selector::GDT_Selector(uint32_t base, uint32_t limit, uint8_t access, uint8_t flags) 
 {
     
@@ -21,17 +28,24 @@ GDT::GDT()
     code(0, KERNEL_LIMIT, KERNEL_CODE_ACCESS, KERNEL_SEGMENT_FLAGS), 
     data(0, KERNEL_LIMIT, KERNEL_DATA_ACCESS, KERNEL_SEGMENT_FLAGS)
 {
-    size = sizeof(GDT) - 1 - sizeof(uint16_t) - sizeof(uint32_t);
-    address = (uint32_t)this + sizeof(uint16_t) + sizeof(uint32_t);
 }
 
 uint16_t GDT::CodeSelector() {
 
-    return (uint8_t*)&code - (uint8_t*)address;
+    return (uint8_t*)&code - (uint8_t*)&null;
 
 }
 uint16_t GDT::DataSelector() {
 
-    return (uint8_t*)&data - (uint8_t*)address;
+    return (uint8_t*)&data - (uint8_t*)&null;
 
+}
+
+void GDT::Activate()
+{
+    GDT_Pointer gdtPtr;
+    gdtPtr.size = sizeof(GDT_Selector) * 4 - 1;
+    gdtPtr.address = (uint32_t)&null;
+
+    ActivateGDT(&gdtPtr);
 }

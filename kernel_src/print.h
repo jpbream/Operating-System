@@ -7,6 +7,8 @@ void printf(const char* str);
 
 void printChar(char c);
 
+void printHex(uint64_t num);
+
 void printLong(uint64_t num);
 
 

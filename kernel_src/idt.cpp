@@ -17,12 +17,15 @@
 #define INTERRUPT_GATE 0xE
 
 extern "C" constexpr uint16_t HARDWARE_OFFSET = 0x20;
+extern "C" void ActivateIDT(void* idt);
 
-IDT::IDT(GDT& gdt) 
+static IDT* activeIDT;
+
+IDT::IDT(GDT& gdt)
+    :
+    picMasterCommand(PIC1_COMMAND), picMasterData(PIC1_DATA),
+    picSlaveCommand(PIC2_COMMAND), picSlaveData(PIC2_DATA)
 {
-
-    size = sizeof(IDT_Selector) * 256 - 1;
-    address = (uint32_t)(this) + sizeof(uint16_t) + sizeof(uint32_t);
 
     uint16_t codeSegmentOffset = gdt.CodeSelector();
 
@@ -80,26 +83,60 @@ IDT::IDT(GDT& gdt)
     CreateSelector(HARDWARE_OFFSET + 0x0E, codeSegmentOffset, &HandleInterrupt0x0E, 0, INTERRUPT_GATE);
     CreateSelector(HARDWARE_OFFSET + 0x0F, codeSegmentOffset, &HandleInterrupt0x0F, 0, INTERRUPT_GATE);
 
+    for ( int i = 0; i < HARDWARE_OFFSET; ++i ) {
+        SetHandler(i, &defExceptionHandler);
+    }
+    for ( int i = HARDWARE_OFFSET; i < 256; ++i ) {
+        SetHandler(i, &defInterruptHandler);
+    }
+
+    InitPIC();
 }
 
-extern "C" void InterruptCallback(uint8_t interrupt) {
-    //printf("INTERRUPT ");
-    
-    if (interrupt != 0) {
-        printf("Tick ");
+void IDT::Activate()
+{
+    IDT_Pointer idtPtr;
+    idtPtr.size = sizeof(IDT_Selector) * 256 - 1;
+    idtPtr.address = (uint32_t)&table[0];
+    ActivateIDT(&idtPtr);
+
+    activeIDT = this;
+}
+
+void IDT::HandleInterrupt(uint8_t interrupt)
+{
+
+    if ( handlers[interrupt] != nullptr ) {
+        (handlers[interrupt])->Handle(interrupt);
+    }
+    else {
+        printf("UNHANDLED INTERRUPT\n");
     }
 
+    if ( interrupt >= HARDWARE_OFFSET && interrupt < HARDWARE_OFFSET + 16 ) {
 
+        picMasterCommand.Write8Slow(PIC_ACKNOWLEDGE);
 
-    if (interrupt >= HARDWARE_OFFSET && interrupt < HARDWARE_OFFSET + 16) {
+        if ( interrupt >= HARDWARE_OFFSET + 8 ) {
 
-        Write8Slow(PIC1_COMMAND, PIC_ACKNOWLEDGE);
-
-        if (interrupt >= HARDWARE_OFFSET + 8) {
-
-            Write8Slow(PIC2_COMMAND, PIC_ACKNOWLEDGE);
+            picSlaveCommand.Write8Slow(PIC_ACKNOWLEDGE);
         }
     }
+
+}
+void IDT::SetHandler(uint8_t interruptNumber, InterruptHandler* handler)
+{
+    handlers[interruptNumber] = handler;
+}
+
+void DelegateToIDT(uint8_t interrupt)
+{
+    activeIDT->HandleInterrupt(interrupt);
+}
+
+extern "C" void InterruptCallback(uint8_t interrupt) 
+{
+    DelegateToIDT(interrupt);
 }
 
 void IDT::CreateSelector(
@@ -119,12 +156,7 @@ void IDT::CreateSelector(
 
 }
 
-void InitPIC() {
-
-    Port picMasterCommand(PIC1_COMMAND);
-    Port picSlaveCommand(PIC2_COMMAND);
-    Port picMasterData(PIC1_DATA);
-    Port picSlaveData(PIC2_DATA);
+void IDT::InitPIC() {
 
     picMasterCommand.Write8Slow(PIC_INIT);
     picSlaveCommand.Write8Slow(PIC_INIT);

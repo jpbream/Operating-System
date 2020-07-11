@@ -3,16 +3,19 @@
 
 #include "gdt.h"
 #include "idt.h"
-#include "print.h"
+#include "keyboard.h"
 
 extern "C" void kernelMain(void) {
     
     GDT gdt;
-    ActivateGDT(&gdt);
+    gdt.Activate();
 
     IDT idt(gdt);
-    InitPIC();
-    ActivateIDT(&idt);
+    idt.Activate();
+
+    Keyboard kbd;
+    idt.SetHandler(0x21, &kbd);
+
     EnableInterrupts();
 
     while (true);

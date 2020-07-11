@@ -4,16 +4,23 @@
 #include <stdint.h>
 #include "gdt.h"
 #include "port.h"
+#include "interrupt_handler.h"
 
-void InitPIC();
 extern "C" void EnableInterrupts();
 extern "C" void DisableInterrupts();
 
 class IDT {
 
+    friend void DelegateToIDT(uint8_t interrupt);
+
 private:
-    uint16_t size;
-    uint32_t address;
+
+    struct IDT_Pointer {
+        uint16_t size;
+        uint32_t address;
+    } __attribute__((packed));
+
+    void InitPIC();
 
     struct IDT_Selector {
         uint16_t offset_lo;
@@ -25,6 +32,15 @@ private:
 
     IDT_Selector table[256];
 
+    Port picMasterCommand;
+    Port picSlaveCommand;
+    Port picMasterData;
+    Port picSlaveData;
+
+    DefaultExceptionHandler defExceptionHandler;
+    DefaultInterruptHandler defInterruptHandler;
+    InterruptHandler* handlers[256];
+
     void CreateSelector(
         uint8_t intNumber,
         uint16_t codeSegOffset,
@@ -33,11 +49,14 @@ private:
         uint8_t type
     );
 
+    void HandleInterrupt(uint8_t interruptNumber);
+
 public:
     IDT(GDT& gdt);
 
-} __attribute__((packed));
+    void Activate();
+    void SetHandler(uint8_t interruptNumber, InterruptHandler* handler);
 
-extern "C" void ActivateIDT(IDT* idt);
+};
 
 #endif

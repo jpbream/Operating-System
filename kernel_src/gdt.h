@@ -3,11 +3,6 @@
 
 #include <stdint.h>
 
-#define KERNEL_CODE_ACCESS 0b10011010
-#define KERNEL_DATA_ACCESS 0b10010010
-#define KERNEL_LIMIT 0x00FFFFFF
-#define KERNEL_SEGMENT_FLAGS 0b11110100
-
 class GDT {
 
 private:
@@ -27,8 +22,12 @@ private:
 
     } __attribute__((packed));
 
-    uint16_t size;
-    uint32_t address;
+    struct GDT_Pointer {
+
+        uint16_t size;
+        uint32_t address;
+
+    } __attribute__((packed));
 
     GDT_Selector null;
     GDT_Selector unused;
@@ -41,8 +40,8 @@ public:
     uint16_t CodeSelector();
     uint16_t DataSelector();
 
-} __attribute__((packed));
+    void Activate();
 
-extern "C" void ActivateGDT(GDT* gdt);
+};
 
 #endif

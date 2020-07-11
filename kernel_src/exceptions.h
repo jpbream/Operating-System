@@ -29,11 +29,50 @@ extern "C" const uint16_t FAULT_SEGMENT;
 #define VIRTUALIZATION_EXCEPTION 0x14
 #define SECURITY_EXCEPTION 0x1E
 
+const inline char* EXCEPTIONS[] =
+{
+    "Divide By Zero",
+    "Debug Exception",
+    "Non Maskable Interrupt",
+    "Breakpoint",
+    "Overflow",
+    "Bound Range Exceeded",
+    "Invalid Opcode",
+    "Device Not Available",
+    "Double Fault",
+    "Reserved Exception",
+    "Invalid TSS",
+    "Segment Not Present",
+    "Stack Segment Fault",
+    "General Protection Fault",
+    "Page Fault",
+    "Reserved Exception",
+    "Floating Point Exception",
+    "Alignment Check",
+    "Machine Check",
+    "SIMD Floating Point Exception",
+    "Virtualization Exception",
+    "Reserved Exception",
+    "Reserved Exception",
+    "Reserved Exception",
+    "Reserved Exception",
+    "Reserved Exception",
+    "Reserved Exception",
+    "Reserved Exception",
+    "Reserved Exception",
+    "Reserved Exception",
+    "Security Exception",
+    "Reserved Exception"
+};
+
+#define HAS_ERROR_CODE(error) (error == INVALID_TSS || error == SEGMENT_NOT_PRESENT || \
+error == STACK_SEGMENT_FAULT || error == GENERAL_PROTECTION_FAULT)
+
 #define IS_SELECTOR_EXTERNAL(error) (error % 2)
 #define SELECTOR_SOURCE(error) ((error >> 1) % 4)
 #define SELECTOR_INDEX(error) ((error >> 3) & 0x00FF)
 
-enum SELECTOR_SOURCE{
+enum SelectorSource {
     SELECTOR_SOURCE_GDT,
     SELECTOR_SOURCE_IDT,
     SELECTOR_SOURCE_LDT
