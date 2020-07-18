@@ -11,8 +11,8 @@ extern "C" void __cxa_pure_virtual()
 void DefaultExceptionHandler::Handle(uint8_t interruptNumber)
 {
 	printf("EXCEPTION: ");
-	printf(EXCEPTIONS[interruptNumber]);
-	printChar('\n');
+	printf("%s", EXCEPTIONS[interruptNumber]);
+	putchar('\n');
 
 	if ( HAS_ERROR_CODE(interruptNumber) ) {
 
@@ -36,8 +36,8 @@ void DefaultExceptionHandler::Handle(uint8_t interruptNumber)
 			break;
 		}
 		printf("at index ");
-		printLong(SELECTOR_INDEX(INTERRUPT_ERROR));
-		printChar('\n');
+		printf("%d", SELECTOR_INDEX(INTERRUPT_ERROR));
+		putchar('\n');
 	}
 
 	// page faults have a special error code
@@ -80,9 +80,9 @@ void DefaultExceptionHandler::Handle(uint8_t interruptNumber)
 	}
 
 	printf("At address ");
-	printHex(FAULT_ADDRESS);
+	printf("%x", FAULT_ADDRESS);
 	printf(" in segment ");
-	printLong(FAULT_SEGMENT);
+	printf("%d", FAULT_SEGMENT);
 	printf("\n");
 	printf("Terminating Operating System");
 
@@ -94,7 +94,7 @@ void DefaultInterruptHandler::Handle(uint8_t interruptNumber)
 {
 	if (interruptNumber != 0x20) {
 		printf("INTERRUPT: ");
-		printLong(interruptNumber);
-		printChar('\n');
+		printf("%d", interruptNumber);
+		putchar('\n');
 	}
 }

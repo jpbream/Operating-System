@@ -10,6 +10,11 @@ private:
 	Port data;
 	Port command;
 
+	void WritePS2Command(uint8_t command);
+	void WriteKeyboardCommand(uint8_t command);
+	void WriteData(uint8_t data);
+	uint8_t ReadData();
+
 public:
 
 	Keyboard();

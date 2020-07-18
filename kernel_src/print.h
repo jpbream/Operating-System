@@ -2,14 +2,12 @@
 #define _PRINT_H_
 
 #include <stdint.h>
+#include <stdarg.h>
 
-void printf(const char* str);
+void printf(const char* seq, ...);
+void putchar(char c);
 
-void printChar(char c);
-
-void printHex(uint64_t num);
-
-void printLong(uint64_t num);
+void clearScreen();
 
 
 #endif

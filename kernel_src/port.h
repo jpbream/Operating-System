@@ -3,8 +3,10 @@
 
 #include <stdint.h>
 
-void Write8(uint16_t port, uint8_t byte);
-void Write8Slow(uint16_t port, uint8_t byte);
+namespace Ports {
+    void Write8(uint16_t port, uint8_t byte);
+    void Write8Slow(uint16_t port, uint8_t byte);
+}
 
 class Port {
 

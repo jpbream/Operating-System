@@ -1,6 +1,6 @@
 #include "ps2_lookup.h"
 
-static char KEYPRESS_LOOKUP[] =
+static unsigned char KEY_LOOKUP[] =
 {
 	// [0x01] = Escape,
 	[0x02] = '1',
@@ -15,8 +15,8 @@ static char KEYPRESS_LOOKUP[] =
 	[0x0B] = '0',
 	[0x0C] = '-',
 	[0x0D] = '=',
-	// [0x0E] = backspace,
-	// [0x0F] = tab,
+	[0x0E] = '\b',
+	[0x0F] = '\t',
 	[0x10] = 'Q',
 	[0x11] = 'W',
 	[0x12] = 'E',
@@ -90,7 +90,7 @@ static char KEYPRESS_LOOKUP[] =
 	// [0x58] = F12,
 };
 
-char LookUpKeyPress(uint8_t code)
+unsigned char LookUpKey(uint8_t code, bool shiftDown)
 {
-	return KEYPRESS_LOOKUP[code];
+	return KEY_LOOKUP[code];
 }

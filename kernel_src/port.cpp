@@ -11,10 +11,10 @@ extern "C" uint8_t inb(uint16_t port);
 
 extern "C" void io_wait();
 
-void Write8(uint16_t port, uint8_t byte) {
+void Ports::Write8(uint16_t port, uint8_t byte) {
     outb(port, byte);
 }
-void Write8Slow(uint16_t port, uint8_t byte) {
+void Ports::Write8Slow(uint16_t port, uint8_t byte) {
     outb(port, byte);
     io_wait();
 }
