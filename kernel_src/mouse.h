@@ -3,26 +3,54 @@
 
 #include "interrupt_handler.h"
 #include "port.h"
+#include "idt.h"
+#include "driver.h"
 #include <stdint.h>
 
-class Mouse : public InterruptHandler {
+class MouseEventHandler
+{
+public:
+	virtual void OnMouseMove(double dx, double dy);
+	virtual void OnMouseDown(int button);
+	virtual void OnMouseUp(int button);
+};
 
+class ConsoleMouseHandler : public MouseEventHandler
+{
 private:
 	double x;
 	double y;
 
-	Port data;
-	Port command;
+	const int width = 80;
+	const int height = 25;
 
-	void WritePS2Command(uint8_t command);
-	void WriteMouseCommand(uint8_t command);
-	void WriteData(uint8_t data);
-	uint8_t ReadData();
+	uint16_t* screen = (uint16_t*)0xB8000;
+
+	void FlipColorAtCursor();
+
+public:
+	ConsoleMouseHandler();
+
+	void OnMouseMove(double dx, double dy) override;
+	void OnMouseDown(int button) override;
+
+	int GetX();
+	int GetY();
+};
+
+class Mouse : public InterruptHandler, public Driver {
+
+private:
+
+	MouseEventHandler* handler;
 
 public:
 
-	Mouse();
+	Mouse(IDT* idt);
 	void Handle(uint8_t interrupt) override;
+	void Activate() override;
+
+	void SetEventHandler(MouseEventHandler* handler);
 
 };
 

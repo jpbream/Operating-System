@@ -3,7 +3,8 @@
 
 #include <stdint.h>
 
-class Intel_CPU {
+// this class only works for intel cpu's
+class CPUInfo {
 
 private:
 
@@ -59,7 +60,7 @@ private:
     const char* GetDescriptorName(uint8_t descriptorCode);
 
 public:
-	Intel_CPU();
+	CPUInfo();
 
     // features sent to the edx register
 	enum Feat1 {

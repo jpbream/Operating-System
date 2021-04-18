@@ -45,6 +45,13 @@ void printHex(int64_t num)
 {
     printf("0x");
 
+    if (num == 0) {
+        putchar('0');
+        putchar('0');
+        return;
+    }
+
+    bool inLeadingZero = true;
     uint64_t mask = 0xF000000000000000;
     for ( int i = 0; i < 16; ++i ) {
 
@@ -55,11 +62,15 @@ void printHex(int64_t num)
             output = '0' + digit;
         }
         else {
-
             output = 'A' + (digit - 10);
         }
 
-        putchar(output);
+        if (output != '0')
+            inLeadingZero = false;
+
+        if (!inLeadingZero)
+            putchar(output);
+
         mask >>= 4;
     }
 }

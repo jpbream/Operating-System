@@ -2,23 +2,33 @@
 #define _KEYBOARD_H_
 
 #include "interrupt_handler.h"
+#include "driver.h"
 #include "port.h"
+#include "idt.h"
 
-class Keyboard : public InterruptHandler {
+class KeyboardEventHandler
+{
+public:
+	virtual void OnKeyDown(char);
+	virtual void OnKeyUp(char);
+};
 
+class ConsoleKeyboardHandler : public KeyboardEventHandler
+{
+	void OnKeyDown(char) override;
+};
+
+class Keyboard : public InterruptHandler, public Driver 
+{
 private:
-	Port data;
-	Port command;
-
-	void WritePS2Command(uint8_t command);
-	void WriteKeyboardCommand(uint8_t command);
-	void WriteData(uint8_t data);
-	uint8_t ReadData();
+	KeyboardEventHandler* handler;
 
 public:
 
-	Keyboard();
+	Keyboard(IDT* idt);
 	void Handle(uint8_t interrupt) override;
+	void Activate() override;
+	void SetEventHandler(KeyboardEventHandler* handler);
 };
 
 #endif

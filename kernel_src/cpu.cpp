@@ -27,7 +27,7 @@ extern "C" uint32_t GetLowPSN();
 
 extern "C" char* GetBrandString();
 
-Intel_CPU::Intel_CPU()
+CPUInfo::CPUInfo()
 {
 	supported = CheckCPUID();
 
@@ -58,8 +58,11 @@ Intel_CPU::Intel_CPU()
 
 }
 
-const char* Intel_CPU::GetDescriptorName(uint8_t descriptorCode)
+const char* CPUInfo::GetDescriptorName(uint8_t descriptorCode)
 {
+
+	// these are just the descriptors for my laptop
+	// there are way more
 	switch ( descriptorCode ) {
 
 	case 0x00:
@@ -81,32 +84,32 @@ const char* Intel_CPU::GetDescriptorName(uint8_t descriptorCode)
 	}
 }
 
-const char* Intel_CPU::VendorID()
+const char* CPUInfo::VendorID()
 {
 	return vendorID;
 }
 
-const char* Intel_CPU::BrandNameLong()
+const char* CPUInfo::BrandNameLong()
 {
 	return brandString;
 }
 
-bool Intel_CPU::QueryFeature(Feat1 feature)
+bool CPUInfo::QueryFeature(Feat1 feature)
 {
 	return features & feature > 0;
 }
 
-bool Intel_CPU::QueryFeature(Feat2 feature)
+bool CPUInfo::QueryFeature(Feat2 feature)
 {
 	return newFeatures & feature > 0;
 }
 
-int Intel_CPU::NumCacheDescriptors()
+int CPUInfo::NumCacheDescriptors()
 {
 	return numCacheDescriptors;
 }
 
-const char* Intel_CPU::GetCacheDescriptor(int idx)
+const char* CPUInfo::GetCacheDescriptor(int idx)
 {
 	return GetDescriptorName(cacheDescriptorCodes[idx]);
 }

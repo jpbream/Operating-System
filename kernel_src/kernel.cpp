@@ -7,18 +7,14 @@
 #include "mouse.h"
 #include "print.h"
 #include "cpu.h"
-
-extern "C" bool InitFPU();
-
+#include "fpu.h"
+#include "pci.h"
+#include "driver.h"
+#include "vga.h"
 
 extern "C" void kernelMain(void) {
     
     clearScreen();
-
-    if ( !InitFPU() ) {
-        printf("You don't have a Floating Point Unit!\n");
-        while ( true );
-    }
 
     GDT gdt;
     gdt.Activate();
@@ -26,21 +22,31 @@ extern "C" void kernelMain(void) {
     IDT idt(gdt);
     idt.Activate();
 
-    Intel_CPU cpu;
+    FPU::Init();
 
-    Keyboard kbd;
-    idt.SetHandler(0x21, &kbd);
+    DriverManager drivers;
 
-    Mouse mouse;
-    idt.SetHandler(0x2C, &mouse);
+    PCI pci;
+    pci.SelectDrivers(&drivers, &idt);
+
+    Keyboard kbd(&idt);
+    drivers.AddDriver(&kbd);
+    ConsoleKeyboardHandler console;
+    kbd.SetEventHandler(&console);
+
+    Mouse mouse(&idt);
+    drivers.AddDriver(&mouse);
+    ConsoleMouseHandler consoleMouse;
+    mouse.SetEventHandler(&consoleMouse);
+
+    VGAGraphicsMode vgaGraphics;
+    vgaGraphics.Activate();
+
+    vgaGraphics.FillScreen(2);
+
+    drivers.ActivateAll();
 
     EnableInterrupts();
-
-    printf("%s\n", cpu.VendorID());
-    printf("%s\n\n", cpu.BrandNameLong());
-    for ( int i = 0; i < cpu.NumCacheDescriptors(); ++i ) {
-        printf("%s\n", cpu.GetCacheDescriptor(i));
-    }
 
     while (true);
 

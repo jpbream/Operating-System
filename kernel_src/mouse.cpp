@@ -1,130 +1,193 @@
 #include "mouse.h"
 #include "print.h"
-
-#define MOUSE_COMMAND 0x64
-#define MOUSE_DATA 0x60
-
-static uint16_t* screen = (uint16_t*)0xB8000;
-#define WIDTH 80
-#define HEIGHT 25
+#include "ps2.h"
 
 #define PACKET_START 0
 
-static void FlipColor(double sx, double sy)
-{
-	int x = (int)(sx * WIDTH);
-	int y = (int)(sy * HEIGHT);
-
-	uint16_t lower = *(screen + y * WIDTH + x) & 0x0F00;
-	uint16_t upper = *(screen + y * WIDTH + x) & 0xF000;
-
-	uint16_t newUpper = lower << 4;
-	uint16_t newLower = upper >> 4;
-
-	*(screen + y * WIDTH + x) &= 0x00FF;
-	*(screen + y * WIDTH + x) |= (newUpper | newLower);
-
-}
-
-Mouse::Mouse()
-	:
-	command(MOUSE_COMMAND), data(MOUSE_DATA)
+ConsoleMouseHandler::ConsoleMouseHandler()
 {
 	x = 0.5;
 	y = 0.5;
 
-	FlipColor(x, y);
+	FlipColorAtCursor();
+}
 
-	// enable mouse device
-	WritePS2Command(0xA8);
+void ConsoleMouseHandler::FlipColorAtCursor()
+{
+	int xCoord = (int)(x * width);
+	int yCoord = (int)(y * height);
+
+	uint16_t lower = *(screen + yCoord * width + xCoord) & 0x0F00;
+	uint16_t upper = *(screen + yCoord * width + xCoord) & 0xF000;
+
+	uint16_t newUpper = lower << 4;
+	uint16_t newLower = upper >> 4;
+
+	*(screen + yCoord * width + xCoord) &= 0x00FF;
+	*(screen + yCoord * width + xCoord) |= (newUpper | newLower);
+}
+
+void ConsoleMouseHandler::OnMouseMove(double dx, double dy)
+{
+	FlipColorAtCursor();
+
+	x += dx;
+	y -= width * dy / height;
+
+	if ( x < 0 )
+		x = 0;
+	if ( x >= 1 )
+		x = 0.999;
+	if ( y < 0 )
+		y = 0;
+	if ( y >= 1 )
+		y = 0.999;
+
+	FlipColorAtCursor();
+}
+
+void ConsoleMouseHandler::OnMouseDown(int button)
+{
+	printf("%d", button);
+}
+
+int ConsoleMouseHandler::GetX()
+{
+	return x * width;
+}
+
+int ConsoleMouseHandler::GetY()
+{
+	return y * height;
+}
+
+
+
+Mouse::Mouse(IDT* idt)
+{
+	idt->SetHandler(0x2C, this);
+}
+
+void Mouse::Activate()
+{
+	// test the mouse
+	PS2::WriteCommand(PS2_TEST_MOUSE);
+	if ( PS2::ReadData() != PS2_TEST_MOUSE_PASSED ) {
+		printf("The Mouse Test Failed.\n");
+		while (true);
+	}
+
+	// enable mouse interface
+	PS2::WriteCommand(PS2_ENABLE_MOUSE);
 
 	// query command register
-	WritePS2Command(0x20);
+	PS2::WriteCommand(PS2_READ_CC);
 	// enable interrupt 12, disable don't enable flag
-	uint8_t status = (ReadData() | 0x02) & ~0x20;
-	
+	uint8_t status = (PS2::ReadData() | CC_ENABLE_INT12) & ~CC_DISABLE_MOUSE;
+
 	// set command register
-	WritePS2Command(0x60);
+	PS2::WriteCommand(PS2_WRITE_CC);
 	// write command value back
-	WriteData(status);
+	PS2::WriteData(status);
 
-	WriteMouseCommand(0xF6);
-	ReadData();
+	// mouse POST
+	PS2::WriteMouseCommand(MS_RESET);
+	PS2::ReadMouseData();
 
-	// enable packet streaming
-	WriteMouseCommand(0xF4);
-	ReadData();
+	// on the laptop, the POST can actually take a second
+	uint8_t testResult;
+	do {
+		testResult = PS2::ReadMouseData();
+	} while ( testResult == PS2_TIMEOUT );
+	
+	if ( testResult != MS_RESET_PASSED ) {
+		printf("The Mouse POST Failed.\n");
+		while (true);
+	}
+	PS2::ReadMouseData();
+
+	//////////////////////////////////////////////////////////////////////////////////////////
+
+	// the synaptics touchpad in my laptop does its own thing
+	// for setting the sample rate, it can only be 40 or 80
+	// it has something called a mode byte. Setting bit 6 of this
+	// byte will make the packet rate 80 per second.
+
+	// 4 set resolutions in a row gets the touchpads attention
+	// the parameters for them form the parameter passed to the touchpad
+
+	// we want to query the mode bit, so we need to send a Status Request
+	// after the 4 set resolutions, with an encoded parameter of 0x01
+
+	PS2::WriteMouseCommand(MS_SET_RESOLUTION);
+	PS2::ReadMouseData();
+	PS2::WriteMouseData(0); // encoding the parameter
+	PS2::ReadMouseData();
+	PS2::WriteMouseCommand(MS_SET_RESOLUTION);
+	PS2::ReadMouseData();
+	PS2::WriteMouseData(0); // encoding the parameter
+	PS2::ReadMouseData();
+	PS2::WriteMouseCommand(MS_SET_RESOLUTION);
+	PS2::ReadMouseData();
+	PS2::WriteMouseData(0); // encoding the parameter
+	PS2::ReadMouseData();
+	PS2::WriteMouseCommand(MS_SET_RESOLUTION);
+	PS2::ReadMouseData();
+	PS2::WriteMouseData(1); // encoding the parameter
+	PS2::ReadMouseData();
+
+	PS2::WriteMouseCommand(MS_READ_STATUS);
+	PS2::ReadMouseData();
+
+	// the third byte of the response is the mode byte
+	PS2::ReadMouseData();
+	PS2::ReadMouseData();
+	uint8_t modeByte = PS2::ReadMouseData();
+
+	modeByte |= 64;
+
+	// the final command to write the mode byte is
+	// set sample rate : 20
+	// the mode byte is the encoded argument
+
+	PS2::WriteMouseCommand(MS_SET_RESOLUTION);
+	PS2::ReadMouseData();
+	PS2::WriteMouseData((modeByte & 0xC0u) >> 6); // encoding the parameter
+	PS2::ReadMouseData();
+	PS2::WriteMouseCommand(MS_SET_RESOLUTION);
+	PS2::ReadMouseData();
+	PS2::WriteMouseData((modeByte & 0x30u) >> 4); // encoding the parameter
+	PS2::ReadMouseData();
+	PS2::WriteMouseCommand(MS_SET_RESOLUTION);
+	PS2::ReadMouseData();
+	PS2::WriteMouseData((modeByte & 0x0Cu) >> 2); // encoding the parameter
+	PS2::ReadMouseData();
+	PS2::WriteMouseCommand(MS_SET_RESOLUTION);
+	PS2::ReadMouseData();
+	PS2::WriteMouseData((modeByte & 0x03u) >> 0); // encoding the parameter
+	PS2::ReadMouseData();
+
+	PS2::WriteMouseCommand(MS_SET_SAMPLE_RATE);
+	PS2::ReadMouseData();
+	PS2::WriteMouseData(0x14);
+	PS2::ReadMouseData();
+
+	//////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+	// enable mouse packets
+	PS2::WriteMouseCommand(MS_ENABLE_STREAMING);
+	PS2::ReadMouseData();
+
+	// enable keyboard scanning now
+	PS2::WriteKeyboardCommand(KBD_ENABLE_SCANNING);
+	PS2::ReadKeyboardData();
+
+	PS2::ClearKeyboardOutput();
 
 	// read up any data still in the buffer
-	while ( command.Read8() & 0x20 )
-		data.Read8();
-
-}
-
-void Mouse::WritePS2Command(uint8_t command)
-{
-	// wait for mouse input to be empty
-	int timeout = 100000;
-	while ( timeout-- ) {
-		if ( (Mouse::command.Read8() & 0x02) == 0 ) {
-			
-			Mouse::command.Write8(command);
-			return;
-
-		}
-	}
-}
-
-void Mouse::WriteMouseCommand(uint8_t command)
-{
-	// wait for mouse input to be empty
-	int timeout = 100000;
-	while ( timeout-- ) {
-		if ( (Mouse::command.Read8() & 0x02) == 0 ) {
-
-			// tell ps2 the parameter is a command
-			// for the mouse using D4
-			Mouse::command.Write8(0xD4);
-			break;
-
-		}
-	}
-
-	timeout = 100000;
-	while ( timeout-- ) {
-		if ( (Mouse::command.Read8() & 0x02) == 0 ) {
-
-			data.Write8(command);
-			return;
-
-		}
-	}
-}
-
-void Mouse::WriteData(uint8_t data)
-{
-	// wait for mouse input to be empty
-	int timeout = 100000;
-	while ( timeout-- ) {
-		if ( (command.Read8() & 0x02) == 0 ) {
-			
-			Mouse::data.Write8(data);
-			return;
-
-		}
-	}
-}
-uint8_t Mouse::ReadData()
-{
-	// wait for mouse output to be empty
-	int timeout = 100000;
-	while ( timeout-- ) {
-		if ( command.Read8() & 0x01 ) {
-			
-			return data.Read8();
-
-		}
-	}
+	PS2::ClearMouseOutput();
 }
 
 void Mouse::Handle(uint8_t interrupt)
@@ -132,44 +195,37 @@ void Mouse::Handle(uint8_t interrupt)
 
 	static int8_t packet[3];
 	static int byte = PACKET_START;
-
-	uint8_t status = command.Read8();
-	if ( !(status & 0x20) ) {
-		return;
-	}
 	
-	packet[byte] = ReadData();
+	packet[byte] = PS2::ReadMouseData();
 
 	byte = (byte + 1) % 3;
 
 	if ( byte == 2 ) {
 
-		FlipColor(x, y);
+		double dx = packet[1] / 1000.0;
+		double dy = packet[2] / 1000.0;
 
-		x += packet[1] / 1000.0;
-		y -= (WIDTH * packet[2] / (1000.0 * HEIGHT));
+		if (handler) {
+			handler->OnMouseMove(dx, dy);
 
-		if ( x < 0 )
-			x = 0;
-		if ( x >= 1 )
-			x = 0.999;
-		if ( y < 0 )
-			y = 0;
-		if ( y >= 1 )
-			y = 0.999;
-
-		FlipColor(x, y);
-
-		if ( packet[0] & 1 ) {
-			//printf("Left Click. ");
+			if ( packet[0] & 1 ) {
+				handler->OnMouseDown(0);
+			}
+			if ( packet[0] & 2 ) {
+				handler->OnMouseDown(1);
+			}
+			if ( packet[0] & 4 ) {
+				handler->OnMouseDown(2);
+			}
 		}
-		if ( packet[0] & 2 ) {
-			//printf("Right Click. ");
-		}
-		if ( packet[0] & 4 ) {
-			//printf("Middle Click. ");
-		}
-
 	}
-
 }
+
+void Mouse::SetEventHandler(MouseEventHandler* handler)
+{
+	this->handler = handler;
+}
+
+void MouseEventHandler::OnMouseDown(int button) {}
+void MouseEventHandler::OnMouseUp(int button) {}
+void MouseEventHandler::OnMouseMove(double x, double y) {}
