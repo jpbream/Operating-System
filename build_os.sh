@@ -2,10 +2,9 @@
 
 ISODIR=image
 
-cd kernel_src
-make os.bin
 make clean
-cd ..
+make build
+make os.bin
 
 # ensure that the multiboot header was set
 # correctly in the binary
