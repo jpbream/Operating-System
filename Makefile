@@ -1,5 +1,8 @@
 OUTPUT = .
 
+ENV := $(wordlist 2,$(words $(MAKECMDGOALS)),$(MAKECMDGOALS))
+$(eval $(ENV):;@:)
+
 PROJDIR := $(realpath $(CURDIR))
 SOURCEDIR := $(PROJDIR)/src
 BUILDDIR := $(PROJDIR)/bin
@@ -18,10 +21,10 @@ ASM_OPTIONS = -f elf
 LINK_OPTIONS = -melf_i386 -L $(OUTPUT)/lib/ -lgcc
 
 $(BUILDDIR)/%.o: $(SOURCEDIR)/%.cpp
-	g++ -c -o $@ $< $(CPP_OPTIONS)
+	g++ -c -o $@ $< $(CPP_OPTIONS) -D $(ENV)
 
 $(BUILDDIR)/%.o: $(SOURCEDIR)/%.c
-	gcc -c -o $@ $< $(C_OPTIONS)
+	gcc -c -o $@ $< $(C_OPTIONS) -D $(ENV)
 
 $(BUILDDIR)/%.o: $(SOURCEDIR)/%.asm
 	nasm -o $@ $< $(ASM_OPTIONS)

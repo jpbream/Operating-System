@@ -4,7 +4,7 @@ ISODIR=image
 
 make clean
 make build
-make os.bin
+make os.bin $1
 
 # ensure that the multiboot header was set
 # correctly in the binary

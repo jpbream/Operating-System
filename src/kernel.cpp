@@ -3,8 +3,8 @@
 
 #include "gdt.h"
 #include "idt.h"
-#include "keyboard.h"
-#include "mouse.h"
+#include "ps2_keyboard.h"
+#include "ps2_mouse.h"
 #include "print.h"
 #include "cpu.h"
 #include "fpu.h"
@@ -12,6 +12,8 @@
 #include "driver.h"
 #include "vga.h"
 #include "desktop.h"
+#include "console.h"
+#include "window.h"
 
 extern "C" void kernelMain(void) {
     
@@ -31,19 +33,19 @@ extern "C" void kernelMain(void) {
     pci.SelectDrivers(&drivers, &idt);
 
     Desktop desktop(320, 200, 1);
+    Window window(&desktop, 50, 25, 50, 50, 2);
+    Window window2(&desktop, 200, 25, 50, 50, 3);
+    desktop.AddChild(&window);
+    desktop.AddChild(&window2);
 
-    Keyboard kbd(&idt);
+    PS2Keyboard kbd(&idt);
     drivers.AddDriver(&kbd);
-    ConsoleKeyboardHandler console;
-    //kbd.SetEventHandler(&console);
+
     kbd.SetEventHandler(&desktop);
 
-    Mouse mouse(&idt);
+    PS2Mouse mouse(&idt);
     drivers.AddDriver(&mouse);
     mouse.SetEventHandler(&desktop);
-
-    //ConsoleMouseHandler consoleMouse;
-    //mouse.SetEventHandler(&consoleMouse);
 
     VGAGraphicsMode vgaGraphics;
     vgaGraphics.Activate();
@@ -52,11 +54,8 @@ extern "C" void kernelMain(void) {
     EnableInterrupts();
 
     while (true) {
-        
-        
         desktop.Draw(&vgaGraphics);
         vgaGraphics.PresentVSync();
-        
     }
 
     while (true);
