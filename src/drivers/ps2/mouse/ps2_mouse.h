@@ -17,7 +17,7 @@ private:
 public:
 
 	PS2Mouse(IDT* idt);
-	void Handle(uint8_t interrupt) override;
+	CPUState* Handle(uint8_t interrupt, CPUState* regs) override;
 	void Activate() override;
 
 	void SetEventHandler(MouseEventHandler* handler);

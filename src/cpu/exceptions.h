@@ -3,11 +3,6 @@
 
 #include <stdint.h>
 
-extern "C" const uint32_t INTERRUPT_ERROR;
-
-extern "C" const uint32_t FAULT_ADDRESS;
-extern "C" const uint16_t FAULT_SEGMENT;
-
 #define DIVIDE_BY_ZERO 0x00
 #define DEBUG_EXCEPTION 0x01
 #define NON_MASKABLE_INTERRUPT 0x02
@@ -68,9 +63,9 @@ const inline char* EXCEPTIONS[] =
 #define HAS_ERROR_CODE(error) (error == INVALID_TSS || error == SEGMENT_NOT_PRESENT || \
 error == STACK_SEGMENT_FAULT || error == GENERAL_PROTECTION_FAULT)
 
-#define IS_SELECTOR_EXTERNAL(error) (error % 2)
-#define SELECTOR_SOURCE(error) ((error >> 1) % 4)
-#define SELECTOR_INDEX(error) ((error >> 3) & 0x00FF)
+#define IS_SELECTOR_EXTERNAL(error) (error & 0x1)
+#define SELECTOR_SOURCE(error) ((error & 0x06) >> 1)
+#define SELECTOR_INDEX(error) ((error & 0x0FFF8) >> 3)
 
 enum SelectorSource {
     SELECTOR_SOURCE_GDT,

@@ -1,18 +1,14 @@
 section .text
 
-extern HARDWARE_OFFSET
+HARDWARE_OFFSET equ 0x20
 extern InterruptCallback
 
 %macro AddExceptionHandler 1
 
     global  HandleException%1
     HandleException%1:
-        push eax
-        mov al, %1
-        mov [interrupt_number], al
-        pop eax
-
-        mov dword [INTERRUPT_ERROR], 0
+        mov dword [interrupt_number], %1
+        push dword [ZERO] ; push a dummy error code onto the stack
         jmp interrupt_handler
 
 %endmacro
@@ -21,12 +17,8 @@ extern InterruptCallback
 
     global  HandleException%1
     HandleException%1:
-        push eax
-        mov al, %1
-        mov [interrupt_number], al
-        pop eax
+        mov dword [interrupt_number], %1
 
-        pop dword [INTERRUPT_ERROR]
         jmp interrupt_handler
 
 %endmacro
@@ -35,13 +27,8 @@ extern InterruptCallback
 
     global  HandleInterrupt%1
     HandleInterrupt%1:
-        push eax
-        mov al, [HARDWARE_OFFSET]
-        add al, %1
-        mov [interrupt_number], al
-        pop eax
-
-        mov dword [INTERRUPT_ERROR], 0
+        mov dword [interrupt_number], %1 + HARDWARE_OFFSET
+        push dword [ZERO] ; push a dummy error code onto the stack
         jmp interrupt_handler
 
 %endmacro
@@ -101,31 +88,33 @@ AddInterruptHandler 0x0F
 
 interrupt_handler:
 
-    ; if the interrupt is an exception
-    ; this will save the address
-    ; and segment that caused it
-    push eax
-    mov eax, [esp + 4]
-    mov dword [FAULT_ADDRESS], eax
-    mov ax, [esp + 8]
-    mov word [FAULT_SEGMENT], ax
-    pop eax
+    ; push registers in the order the CPUState struct expects them
+    ; (reverse)
+    push ebp
+    push edi
+    push esi 
 
-    pusha
-    push ds
-    push es
-    push fs
-    push gs
+    push edx 
+    push ecx 
+    push ebx 
+    push eax
     
+    push esp ; esp acts as a pointer to all the registers we just pushed
     push dword [interrupt_number]
     call InterruptCallback
-    add esp, 4
+    mov esp, eax ; switch the stack to a new task
 
-    pop gs
-    pop fs
-    pop es
-    pop ds
-    popa
+    ; restore registers, but this time for the new task
+    pop eax 
+    pop ebx 
+    pop ecx 
+    pop edx 
+
+    pop esi 
+    pop edi 
+    pop ebp
+
+    add esp, 4 ; skip over the error code
 
 global IgnoreInterrupt
 IgnoreInterrupt:
@@ -133,16 +122,8 @@ IgnoreInterrupt:
     iret
 
 
-
 section .data
 
 interrupt_number dd 0
 
-global INTERRUPT_ERROR
-INTERRUPT_ERROR dd 0
-
-global FAULT_ADDRESS
-FAULT_ADDRESS dd 0
-
-global FAULT_SEGMENT
-FAULT_SEGMENT dw 0
+ZERO dd 0

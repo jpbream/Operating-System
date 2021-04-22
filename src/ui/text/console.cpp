@@ -32,8 +32,6 @@ void Console::OnMouseMove(double dx, double dy)
 {
 	FlipColorAtCursor();
 
-	printf("%d %d\n", (int)dx, (int)dy);
-
 	x += dx / 1000;
 	y += width * dy / height / 1000;
 

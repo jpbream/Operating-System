@@ -14,6 +14,24 @@
 #include "desktop.h"
 #include "console.h"
 #include "window.h"
+#include "task_manager.h"
+#include "task.h"
+
+void taskA() {
+    while (true) {
+        int num = 100000000;
+        while (num--);
+        printf("A");
+    }
+}
+
+void taskB() {
+    while (true) {
+        int num = 100000000;
+        while (num--);
+        printf("B");
+    }
+}
 
 extern "C" void kernelMain(void) {
     
@@ -22,7 +40,13 @@ extern "C" void kernelMain(void) {
     GDT gdt;
     gdt.Activate();
 
-    IDT idt(gdt);
+    TaskManager taskManager;
+    Task task1(&gdt, taskA);
+    Task task2(&gdt, taskB);
+    taskManager.AddTask(&task1);
+    taskManager.AddTask(&task2);
+
+    IDT idt(gdt, taskManager);
     idt.Activate();
 
     FPU::Init();
@@ -32,30 +56,38 @@ extern "C" void kernelMain(void) {
     PCI pci;
     pci.SelectDrivers(&drivers, &idt);
 
-    Desktop desktop(320, 200, 1);
-    Window window(&desktop, 50, 25, 50, 50, 2);
-    Window window2(&desktop, 200, 25, 50, 50, 3);
-    desktop.AddChild(&window);
-    desktop.AddChild(&window2);
+    // Desktop desktop(320, 200, 1);
+    // Window window(&desktop, 50, 25, 50, 50, 2);
+    // Window window2(&desktop, 200, 25, 50, 50, 3);
+    // desktop.AddChild(&window);
+    // desktop.AddChild(&window2);
+    Console console;
 
     PS2Keyboard kbd(&idt);
     drivers.AddDriver(&kbd);
-
-    kbd.SetEventHandler(&desktop);
+    //kbd.SetEventHandler(&desktop);
+    kbd.SetEventHandler(&console);
 
     PS2Mouse mouse(&idt);
     drivers.AddDriver(&mouse);
-    mouse.SetEventHandler(&desktop);
+    //mouse.SetEventHandler(&desktop);
+    mouse.SetEventHandler(&console);
 
-    VGAGraphicsMode vgaGraphics;
-    vgaGraphics.Activate();
+    //VGAGraphicsMode vgaGraphics;
+    //vgaGraphics.Activate();
+
+    VGATextMode vgaText;
+    vgaText.Activate();
 
     drivers.ActivateAll();
+
+
+
     EnableInterrupts();
 
     while (true) {
-        desktop.Draw(&vgaGraphics);
-        vgaGraphics.PresentVSync();
+        //desktop.Draw(&vgaGraphics);
+        //vgaGraphics.PresentVSync();
     }
 
     while (true);

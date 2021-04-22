@@ -21,12 +21,13 @@ extern "C" void ActivateIDT(void* idt);
 
 static IDT* activeIDT;
 
-IDT::IDT(GDT& gdt)
+IDT::IDT(GDT& gdt, TaskManager& taskManager)
     :
     picMasterCommand(PIC1_COMMAND), picMasterData(PIC1_DATA),
     picSlaveCommand(PIC2_COMMAND), picSlaveData(PIC2_DATA)
 {
 
+    this->taskManager = &taskManager;
     uint16_t codeSegmentOffset = gdt.CodeSelector();
 
     for (int i = 0; i < 256; ++i) {
@@ -103,13 +104,18 @@ void IDT::Activate()
     activeIDT = this;
 }
 
-void IDT::HandleInterrupt(uint8_t interrupt)
+CPUState* IDT::HandleInterrupt(uint8_t interrupt, CPUState* regs)
 {
+    if (interrupt == HARDWARE_OFFSET) {
 
-    if ( handlers[interrupt] != nullptr ) {
-        (handlers[interrupt])->Handle(interrupt);
+        // handle timer interrupt
+        regs = taskManager->Schedule(regs);
+
     }
-    else {
+    else if ( handlers[interrupt] != nullptr ) {
+        (handlers[interrupt])->Handle(interrupt, regs);
+    }
+    else if (interrupt != HARDWARE_OFFSET) {
         printf("UNHANDLED INTERRUPT\n");
     }
 
@@ -123,20 +129,21 @@ void IDT::HandleInterrupt(uint8_t interrupt)
         }
     }
 
+    return regs;
 }
 void IDT::SetHandler(uint8_t interruptNumber, InterruptHandler* handler)
 {
     handlers[interruptNumber] = handler;
 }
 
-void DelegateToIDT(uint8_t interrupt)
+CPUState* DelegateToIDT(uint8_t interrupt, CPUState* regs)
 {
-    activeIDT->HandleInterrupt(interrupt);
+    return activeIDT->HandleInterrupt(interrupt, regs);
 }
 
-extern "C" void InterruptCallback(uint8_t interrupt) 
+extern "C" CPUState* InterruptCallback(uint32_t interrupt, CPUState* regs) 
 {
-    DelegateToIDT(interrupt);
+    return DelegateToIDT(interrupt, regs);
 }
 
 void IDT::CreateSelector(

@@ -8,22 +8,26 @@ extern "C" void __cxa_pure_virtual()
 	while ( 1 ); 
 }
 
-void DefaultExceptionHandler::Handle(uint8_t interruptNumber)
+CPUState* DefaultExceptionHandler::Handle(uint8_t interruptNumber, CPUState* regs)
 {
 	printf("EXCEPTION: ");
 	printf("%s", EXCEPTIONS[interruptNumber]);
 	putchar('\n');
 
+	uint32_t error = regs->error;
+	uint32_t address = regs->eip; // get address of the fault
+	uint32_t segment = regs->cs; // get code segment of the fault
+
 	if ( HAS_ERROR_CODE(interruptNumber) ) {
 
-		if ( IS_SELECTOR_EXTERNAL(INTERRUPT_ERROR) ) {
+		if ( IS_SELECTOR_EXTERNAL(error) ) {
 			printf("External Exception ");
 		}
 		else {
 			printf("Internal Exception ");
 		}
 
-		switch ( SELECTOR_SOURCE(INTERRUPT_ERROR) ) {
+		switch ( SELECTOR_SOURCE(error) ) {
 
 		case SELECTOR_SOURCE_GDT:
 			printf(" Originated from GDT ");
@@ -36,42 +40,42 @@ void DefaultExceptionHandler::Handle(uint8_t interruptNumber)
 			break;
 		}
 		printf("at index ");
-		printf("%d", SELECTOR_INDEX(INTERRUPT_ERROR));
+		printf("%d", SELECTOR_INDEX(error));
 		putchar('\n');
 	}
 
 	// page faults have a special error code
 	if ( interruptNumber == PAGE_FAULT ) {
 
-		if ( INTERRUPT_ERROR & 0x01 ) {
+		if ( error & 0x01 ) {
 			printf("Caused by Page-Protection Violation ");
 		}
 		else {
 			printf("Caused by Non-Present Page ");
 		}
 
-		if ( INTERRUPT_ERROR & 0x02 ) {
+		if ( error & 0x02 ) {
 			printf("during a write access ");
 		}
 		else {
 			printf("during a read access ");
 		}
 
-		if ( INTERRUPT_ERROR & 0x04 ) {
+		if ( error & 0x04 ) {
 			printf("in privilege level 3. ");
 		}
 		else {
 			printf("in unknown privilege. ");
 		}
 
-		if ( INTERRUPT_ERROR & 0x08 ) {
+		if ( error & 0x08 ) {
 			printf("Page entry contained reserved bits. ");
 		}
 		else {
 			printf("Page entry contained no reserved bits. ");
 		}
 
-		if ( INTERRUPT_ERROR & 0x10 ) {
+		if ( error & 0x10 ) {
 			printf("Fault was caused by instruction fetch. ");
 		}
 		else {
@@ -80,9 +84,9 @@ void DefaultExceptionHandler::Handle(uint8_t interruptNumber)
 	}
 
 	printf("At address ");
-	printf("%x", FAULT_ADDRESS);
+	printf("%x", address);
 	printf(" in segment ");
-	printf("%d", FAULT_SEGMENT);
+	printf("%d", segment);
 	printf("\n");
 	printf("Terminating Operating System");
 
@@ -90,11 +94,13 @@ void DefaultExceptionHandler::Handle(uint8_t interruptNumber)
 
 }
 
-void DefaultInterruptHandler::Handle(uint8_t interruptNumber)
+CPUState* DefaultInterruptHandler::Handle(uint8_t interruptNumber, CPUState* regs)
 {
 	if (interruptNumber != 0x20) {
 		printf("INTERRUPT: ");
 		printf("%d", interruptNumber);
 		putchar('\n');
 	}
+
+	return regs;
 }

@@ -132,7 +132,7 @@ void PS2Mouse::Activate()
 	PS2::ClearMouseOutput();
 }
 
-void PS2Mouse::Handle(uint8_t interrupt)
+CPUState* PS2Mouse::Handle(uint8_t interrupt, CPUState* regs)
 {
 	static bool mouseButtons[3] = {false, false, false};
 
@@ -149,7 +149,7 @@ void PS2Mouse::Handle(uint8_t interrupt)
 		// virtualbox doesn't do a great job of reporting these correctly,
 		// so don't move the mouse too fast in virtualbox
 		if (packet[0] & 0x80 || packet[0] & 0x40) {
-			return;
+			return regs;
 		}
 
 		// properly sign extend the x and y movements
@@ -165,7 +165,7 @@ void PS2Mouse::Handle(uint8_t interrupt)
 #ifdef VIRTUALBOX
 		// something happens in virtualbox that makes the sign bit sometimes not correct
 		if (dx > 250 || dy > 250) {
-			return;
+			return regs;
 		}
 #endif
 
@@ -198,6 +198,8 @@ void PS2Mouse::Handle(uint8_t interrupt)
 			mouseButtons[2] = (packet[0] & 4) > 0;
 		}
 	}
+
+	return regs;
 }
 
 void PS2Mouse::SetEventHandler(MouseEventHandler* handler)

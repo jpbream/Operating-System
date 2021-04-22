@@ -63,7 +63,7 @@ void PS2Keyboard::Activate()
 	PS2::ReadKeyboardData();
 }
 
-void PS2Keyboard::Handle(uint8_t interrupt)
+CPUState* PS2Keyboard::Handle(uint8_t interrupt, CPUState* regs)
 {
 	uint8_t key = PS2::ReadKeyboardData();
 	
@@ -75,6 +75,8 @@ void PS2Keyboard::Handle(uint8_t interrupt)
 			handler->OnKeyUp(LookUpKey(key, false));
 		}
 	}
+
+	return regs;
 }
 
 void PS2Keyboard::SetEventHandler(KeyboardEventHandler* handler)

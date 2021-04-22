@@ -5,13 +5,15 @@
 #include "gdt.h"
 #include "port.h"
 #include "interrupt_handler.h"
+#include "task_manager.h"
+#include "cpu_state.h"
 
 extern "C" void EnableInterrupts();
 extern "C" void DisableInterrupts();
 
 class IDT {
 
-    friend void DelegateToIDT(uint8_t interrupt);
+    friend CPUState* DelegateToIDT(uint8_t interrupt, CPUState* regs);
 
 private:
 
@@ -40,6 +42,7 @@ private:
     DefaultExceptionHandler defExceptionHandler;
     DefaultInterruptHandler defInterruptHandler;
     InterruptHandler* handlers[256];
+    TaskManager* taskManager;
 
     void CreateSelector(
         uint8_t intNumber,
@@ -49,10 +52,10 @@ private:
         uint8_t type
     );
 
-    void HandleInterrupt(uint8_t interruptNumber);
+    CPUState* HandleInterrupt(uint8_t interruptNumber, CPUState* regs);
 
 public:
-    IDT(GDT& gdt);
+    IDT(GDT& gdt, TaskManager& taskManager);
 
     void Activate();
     void SetHandler(uint8_t interruptNumber, InterruptHandler* handler);

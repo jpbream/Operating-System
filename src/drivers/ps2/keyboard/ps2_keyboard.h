@@ -6,6 +6,7 @@
 #include "driver.h"
 #include "port.h"
 #include "idt.h"
+#include "cpu_state.h"
 
 class PS2Keyboard : public InterruptHandler, public Driver 
 {
@@ -15,7 +16,7 @@ private:
 public:
 
 	PS2Keyboard(IDT* idt);
-	void Handle(uint8_t interrupt) override;
+	CPUState* Handle(uint8_t interrupt, CPUState* regs) override;
 	void Activate() override;
 	void SetEventHandler(KeyboardEventHandler* handler);
 };
