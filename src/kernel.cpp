@@ -1,5 +1,6 @@
 #include <stdint.h>
 #include <stdbool.h>
+#include <stddef.h>
 
 #include "gdt.h"
 #include "idt.h"
@@ -16,6 +17,8 @@
 #include "window.h"
 #include "task_manager.h"
 #include "task.h"
+#include "memory_manager.h"
+#include "multiboot.h"
 
 void taskA() {
     while (true) {
@@ -33,7 +36,22 @@ void taskB() {
     }
 }
 
-extern "C" void kernelMain(void) {
+void* operator new(size_t size)
+{
+    return MemoryManager::activeMemoryManager->malloc(size);
+}
+
+void operator delete(void* ptr)
+{
+    MemoryManager::activeMemoryManager->free(ptr);
+}
+
+void operator delete(void* ptr, unsigned int)
+{
+    MemoryManager::activeMemoryManager->free(ptr);
+}
+
+extern "C" void kernelMain(multiboot_info_t* info, uint32_t magicNumber) {
     
     clearScreen();
 
@@ -43,8 +61,8 @@ extern "C" void kernelMain(void) {
     TaskManager taskManager;
     Task task1(&gdt, taskA);
     Task task2(&gdt, taskB);
-    taskManager.AddTask(&task1);
-    taskManager.AddTask(&task2);
+    //taskManager.AddTask(&task1);
+    //taskManager.AddTask(&task2);
 
     IDT idt(gdt, taskManager);
     idt.Activate();
@@ -55,6 +73,14 @@ extern "C" void kernelMain(void) {
 
     PCI pci;
     pci.SelectDrivers(&drivers, &idt);
+
+    // start the heap at 10 Mb
+    size_t heap = 10 * 1024 * 1024;                     // padding
+    uint32_t memUpper = info->mem_upper * 1024 - heap - 10 * 1024;
+
+    printf("Heap Size: %d Mb\n", memUpper / 1024 / 1024);
+
+    MemoryManager memoryManager(heap, memUpper);
 
     // Desktop desktop(320, 200, 1);
     // Window window(&desktop, 50, 25, 50, 50, 2);
@@ -81,7 +107,9 @@ extern "C" void kernelMain(void) {
 
     drivers.ActivateAll();
 
-
+    CPUInfo* cpu = new CPUInfo();
+    printf("%s\n", cpu->VendorID());
+    delete cpu;
 
     EnableInterrupts();
 
