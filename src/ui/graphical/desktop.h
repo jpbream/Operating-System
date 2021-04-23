@@ -3,6 +3,7 @@
 
 #include "widget.h"
 #include "mouse_handler.h"
+#include "color.h"
 
 class Desktop : public CompositeWidget, public MouseEventHandler
 {
@@ -11,7 +12,7 @@ private:
 	double mouseY;
 
 public:
-    Desktop(int width, int height, char color);
+    Desktop(int width, int height, Color color);
 
     void OnMouseMove(double dx, double dy) override;
 	void OnMouseDown(int button) override;

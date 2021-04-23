@@ -1,6 +1,6 @@
 #include "window.h"
 
-Window::Window(Desktop* parent, int x, int y, int w, int h, char c)
+Window::Window(Desktop* parent, int x, int y, int w, int h, Color c)
     : CompositeWidget(parent, x, y, w, h, c)
 {
 }

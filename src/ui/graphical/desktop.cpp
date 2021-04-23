@@ -1,6 +1,6 @@
 #include "desktop.h"
 
-Desktop::Desktop(int width, int height, char color)
+Desktop::Desktop(int width, int height, Color color)
 : CompositeWidget(0, 0, 0, width, height, color)
 {
     mouseX = width / 2.0;
@@ -9,10 +9,10 @@ Desktop::Desktop(int width, int height, char color)
 void Desktop::Draw(GraphicsContext* gfx)
 {
     CompositeWidget::Draw(gfx);
-    gfx->FillRect(mouseX, mouseY, 2, 2, 0x3F);
+    gfx->FillRect(mouseX, mouseY, width / 250, width / 250, (Color){255, 255, 255, 255}); 
 }
 void Desktop::OnMouseMove(double dx, double dy)
-{
+{ 
     #ifdef VIRTUALBOX
 	mouseX += dx / 10;
 	mouseY += dy / 10;

@@ -11,7 +11,7 @@
 #include "fpu.h"
 #include "pci.h"
 #include "driver.h"
-#include "vga.h"
+#include "vga_graphics.h"
 #include "desktop.h"
 #include "console.h"
 #include "window.h"
@@ -19,6 +19,7 @@
 #include "task.h"
 #include "memory_manager.h"
 #include "multiboot.h"
+#include "graphics_context.h"
 
 void taskA() {
     while (true) {
@@ -80,30 +81,74 @@ extern "C" void kernelMain(multiboot_info_t* info, uint32_t magicNumber) {
 
     printf("Heap Size: %d Mb\n", memUpper / 1024 / 1024);
 
+    if (info->flags | MULTIBOOT_INFO_VBE_INFO) {
+        printf("There is video info.\n");
+    }
+    if (info->flags | MULTIBOOT_INFO_FRAMEBUFFER_INFO) {
+        printf("There is framebuffer info.\n");
+    }
+
+    printf("%x\n", info->framebuffer_addr);
+    printf("%d %d\n", info->framebuffer_width, info->framebuffer_height);
+
+    if (info->flags & (1<<6))
+    {
+      multiboot_memory_map_t *mmap;
+      
+      printf ("mmap_addr = %x, mmap_length = %d\n",
+              (unsigned) info->mmap_addr, (unsigned) info->mmap_length);
+      for (mmap = (multiboot_memory_map_t *) info->mmap_addr;
+           (unsigned long) mmap < info->mmap_addr + info->mmap_length;
+           mmap = (multiboot_memory_map_t *) ((unsigned long) mmap
+                                    + mmap->size + sizeof (mmap->size)))
+        printf (" size = %d, base_addr = %x,"
+                " length = %d, type = %d\n",
+                (unsigned) mmap->size,
+                (unsigned) (mmap->addr),
+                (unsigned) (mmap->len),
+                (unsigned) mmap->type);
+    }
+    else {
+        printf("Memory bit not set\n");
+    }
+
     MemoryManager memoryManager(heap, memUpper);
 
-    // Desktop desktop(320, 200, 1);
-    // Window window(&desktop, 50, 25, 50, 50, 2);
-    // Window window2(&desktop, 200, 25, 50, 50, 3);
-    // desktop.AddChild(&window);
-    // desktop.AddChild(&window2);
-    Console console;
+    Desktop desktop(
+        info->framebuffer_width > 400 ? info->framebuffer_width : 320, 
+        info->framebuffer_width > 400 ? info->framebuffer_height : 200, 
+        COLOR(0, 0, 255));
+
+    Window window(&desktop, 50, 25, 50, 50, COLOR(0, 255, 0));
+    Window window2(&desktop, 200, 25, 50, 50, COLOR(0, 255, 0));
+    desktop.AddChild(&window);
+    desktop.AddChild(&window2);
+    //Console console;
 
     PS2Keyboard kbd(&idt);
     drivers.AddDriver(&kbd);
-    //kbd.SetEventHandler(&desktop);
-    kbd.SetEventHandler(&console);
+    kbd.SetEventHandler(&desktop);
+    //kbd.SetEventHandler(&console);
 
     PS2Mouse mouse(&idt);
     drivers.AddDriver(&mouse);
-    //mouse.SetEventHandler(&desktop);
-    mouse.SetEventHandler(&console);
+    mouse.SetEventHandler(&desktop);
+    //mouse.SetEventHandler(&console);
 
-    //VGAGraphicsMode vgaGraphics;
-    //vgaGraphics.Activate();
+    GraphicsContext* gfx;
+    if (info->framebuffer_width > 400) {
+        //gfx = new GraphicsContext((uint32_t*)info->framebuffer_addr, info->framebuffer_width, info->framebuffer_height);
+        GraphicsContext g((uint32_t*)info->framebuffer_addr, info->framebuffer_width, info->framebuffer_height);
+        gfx = &g;
+    }
+    else {
+        VGAGraphicsMode* g = new VGAGraphicsMode();
+        g->Activate();
+        gfx = g;
+    }
 
-    VGATextMode vgaText;
-    vgaText.Activate();
+    //VGATextMode vgaText;
+    //vgaText.Activate();
 
     drivers.ActivateAll();
 
@@ -114,8 +159,8 @@ extern "C" void kernelMain(multiboot_info_t* info, uint32_t magicNumber) {
     EnableInterrupts();
 
     while (true) {
-        //desktop.Draw(&vgaGraphics);
-        //vgaGraphics.PresentVSync();
+        desktop.Draw(gfx);
+        gfx->PresentVSync();
     }
 
     while (true);

@@ -2,7 +2,7 @@
 
 ISODIR=image
 
-#make clean
+make clean
 make build
 make os.bin $1
 

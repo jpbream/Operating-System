@@ -5,6 +5,7 @@
 
 #include "graphics_context.h"
 #include "keyboard_handler.h"
+#include "color.h"
 
 class Widget : public KeyboardEventHandler
 {
@@ -15,11 +16,11 @@ protected:
     int width;
     int height;
 
-    char color;
+    Color color;
 
 public:
 
-    Widget(Widget* parent, int x, int y, int w, int h, char color);
+    Widget(Widget* parent, int x, int y, int w, int h, Color color);
     ~Widget();
 
     virtual void GetFocus(Widget* widget);
@@ -43,7 +44,7 @@ private:
     Widget* focusedChild;
 
 public:
-    CompositeWidget(Widget* parent, int x, int y, int w, int h, char color);
+    CompositeWidget(Widget* parent, int x, int y, int w, int h, Color color);
     ~CompositeWidget();
 
     virtual void GetFocus(Widget* widget) override;

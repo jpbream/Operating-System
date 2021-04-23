@@ -9,7 +9,7 @@ private:
     bool mouseDown;
 
 public:
-    Window(Desktop* parent, int x, int y, int w, int h, char c);
+    Window(Desktop* parent, int x, int y, int w, int h, Color c);
 
     void OnMouseDown(int x, int y, int button) override;
     void OnMouseUp(int x, int y, int button) override;

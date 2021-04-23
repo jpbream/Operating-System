@@ -161,13 +161,11 @@ CPUState* PS2Mouse::Handle(uint8_t interrupt, CPUState* regs)
 
 		// flip to screen space
 		dy = -dy;
-
-#ifdef VIRTUALBOX
+ 
 		// something happens in virtualbox that makes the sign bit sometimes not correct
 		if (dx > 250 || dy > 250) {
 			return regs;
 		}
-#endif
 
 		if (handler) {
 			handler->OnMouseMove(dx, dy);

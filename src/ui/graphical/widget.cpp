@@ -1,6 +1,6 @@
 #include "widget.h"
 
-Widget::Widget(Widget* parent, int x, int y, int w, int h, char color)
+Widget::Widget(Widget* parent, int x, int y, int w, int h, Color color)
     : parent(parent), x(x), y(y), width(w), height(h), color(color)
 {
 }
@@ -44,7 +44,7 @@ void Widget::OnMouseDown(int x, int y, int button)
     GetFocus(this);
 }
 
-CompositeWidget::CompositeWidget(Widget* parent, int x, int y, int w, int h, char color)
+CompositeWidget::CompositeWidget(Widget* parent, int x, int y, int w, int h, Color color)
     : Widget(parent, x, y, w, h, color)
 {
     focusedChild = 0;

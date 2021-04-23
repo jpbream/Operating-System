@@ -7,9 +7,11 @@
 MAGIC equ 0x1BADB002
 
 ; set some GRUB settings
-ALIGN_AS equ 1<<0
-MEMINFO equ 1<<1
-FLAGS equ ALIGN_AS | MEMINFO
+ALIGN_AS equ 0x00
+MEMINFO equ 0x02 ; ask for memory info in the multiboot structure
+VIDEOINFO equ 0x04 ; ask for video in the multiboot structure
+
+FLAGS equ ALIGN_AS | MEMINFO | VIDEOINFO
 CHECKSUM equ -(MAGIC + FLAGS)
 
 ; set the multiboot header data
@@ -19,6 +21,17 @@ align 4
 dd MAGIC
 dd FLAGS
 dd CHECKSUM
+
+dd 0
+dd 0
+dd 0
+dd 0
+dd 0
+
+dd 0 ; make this zero to get a larger frame buffer
+dd 0 ; desired width (0 to default)
+dd 0 ; desired height (0 to default)
+dd 0 ; desired color depth (0 to default)
 
 ; set up the stack pointer before
 ; we can run C code
