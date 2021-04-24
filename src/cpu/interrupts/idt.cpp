@@ -16,7 +16,6 @@
 #define INTERRUPT_PRESENT 0x80
 #define INTERRUPT_GATE 0xE
 
-extern "C" constexpr uint16_t HARDWARE_OFFSET = 0x20;
 extern "C" void ActivateIDT(void* idt);
 
 static IDT* activeIDT;

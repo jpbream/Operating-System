@@ -70,11 +70,6 @@ extern "C" void kernelMain(multiboot_info_t* info, uint32_t magicNumber) {
 
     FPU::Init();
 
-    DriverManager drivers;
-
-    PCI pci;
-    pci.SelectDrivers(&drivers, &idt);
-
     // start the heap at 10 Mb
     size_t heap = 10 * 1024 * 1024;                     // padding
     uint32_t memUpper = info->mem_upper * 1024 - heap - 10 * 1024;
@@ -114,6 +109,11 @@ extern "C" void kernelMain(multiboot_info_t* info, uint32_t magicNumber) {
 
     MemoryManager memoryManager(heap, memUpper);
 
+    DriverManager drivers;
+
+    PCI pci;
+    pci.SelectDrivers(&drivers, &idt);
+
     Desktop desktop(
         info->framebuffer_width > 400 ? info->framebuffer_width : 320, 
         info->framebuffer_width > 400 ? info->framebuffer_height : 200, 
@@ -123,29 +123,30 @@ extern "C" void kernelMain(multiboot_info_t* info, uint32_t magicNumber) {
     Window window2(&desktop, 200, 25, 50, 50, COLOR(0, 255, 0));
     desktop.AddChild(&window);
     desktop.AddChild(&window2);
-    //Console console;
+
+    Console console;
 
     PS2Keyboard kbd(&idt);
     drivers.AddDriver(&kbd);
-    kbd.SetEventHandler(&desktop);
-    //kbd.SetEventHandler(&console);
+    //kbd.SetEventHandler(&desktop);
+    kbd.SetEventHandler(&console);
 
     PS2Mouse mouse(&idt);
     drivers.AddDriver(&mouse);
-    mouse.SetEventHandler(&desktop);
-    //mouse.SetEventHandler(&console);
+    //mouse.SetEventHandler(&desktop);
+    mouse.SetEventHandler(&console);
 
-    GraphicsContext* gfx;
-    if (info->framebuffer_width > 400) {
-        //gfx = new GraphicsContext((uint32_t*)info->framebuffer_addr, info->framebuffer_width, info->framebuffer_height);
-        GraphicsContext g((uint32_t*)info->framebuffer_addr, info->framebuffer_width, info->framebuffer_height);
-        gfx = &g;
-    }
-    else {
-        VGAGraphicsMode* g = new VGAGraphicsMode();
-        g->Activate();
-        gfx = g;
-    }
+    // GraphicsContext* gfx;
+    // if (info->framebuffer_width > 400) {
+    //     //gfx = new GraphicsContext((uint32_t*)info->framebuffer_addr, info->framebuffer_width, info->framebuffer_height);
+    //     GraphicsContext g((uint32_t*)info->framebuffer_addr, info->framebuffer_width, info->framebuffer_height);
+    //     gfx = &g;
+    // }
+    // else {
+    //     VGAGraphicsMode* g = new VGAGraphicsMode();
+    //     g->Activate();
+    //     gfx = g;
+    // }
 
     //VGATextMode vgaText;
     //vgaText.Activate();
@@ -159,8 +160,8 @@ extern "C" void kernelMain(multiboot_info_t* info, uint32_t magicNumber) {
     EnableInterrupts();
 
     while (true) {
-        desktop.Draw(gfx);
-        gfx->PresentVSync();
+        //desktop.Draw(gfx);
+        //gfx->PresentVSync();
     }
 
     while (true);

@@ -8,6 +8,8 @@
 #include "task_manager.h"
 #include "cpu_state.h"
 
+#define HARDWARE_OFFSET 0x20
+
 extern "C" void EnableInterrupts();
 extern "C" void DisableInterrupts();
 

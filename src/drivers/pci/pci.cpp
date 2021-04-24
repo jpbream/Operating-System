@@ -1,5 +1,6 @@
 #include "pci.h"
 #include "print.h"
+#include "amd_am79c973.h"
 
 PCI::PCI()
     : dataPort(0xCFC), commandPort(0xCF8)
@@ -67,11 +68,11 @@ void PCI::SelectDrivers(DriverManager* drivers, IDT* idt)
                     if (bar.address && bar.type == InputOutput) {
                         pciDevice.portBase = (uint32_t)bar.address;
                     }
+                }
 
-                    Driver* driver = GetDriver(&pciDevice, idt);
-                    if (driver) {
-                        drivers->AddDriver(driver);
-                    }
+                Driver* driver = GetDriver(&pciDevice, idt);
+                if (driver) {
+                    drivers->AddDriver(driver);
                 }
             }
         }
@@ -140,6 +141,18 @@ PCIBaseAddressRegister PCI::GetBaseAddressRegister(uint8_t bus, uint8_t device, 
 
 Driver* PCI::GetDriver(PCIDevice* device, IDT* idt)
 {
+    Driver* driver = 0;
+
+    switch (device->vendorId) {
+        case 0x1022: // AMD
+            switch (device->deviceId) {
+                case 0x2000: // AMD am79c973
+                driver = new AMDAM79C973(device, idt);
+                break;
+            }
+            break;
+    }
+
     switch (device->classId) {
         case 0x03: // graphics device
             switch (device->subclassId) {
@@ -149,5 +162,5 @@ Driver* PCI::GetDriver(PCIDevice* device, IDT* idt)
         break;
     }
 
-    return 0;
+    return driver;
 }
