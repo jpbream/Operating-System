@@ -37,8 +37,8 @@ memcpy:
         jle memcpy_end
 
 memcpy_top:
-        vmovdqu xmm0, [eax]
-        vmovdqu [ecx], xmm0
+        vmovdqu ymm0, [eax]
+        vmovdqu [ecx], ymm0
 
         add eax, 32
         add ecx, 32
@@ -60,20 +60,12 @@ memsetd:
         cmp dword [ebp + 16], 0
         jle memsetd_end
 
-        ; copied from compiler explorer output
-        ; this unfortunate code simply loads the
-        ; value to copy into xmm0
-        movd      xmm1, dword [ebp + 12]
-        movd      xmm2, dword [ebp + 12]
-        punpckldq xmm1, xmm2
-        movd      xmm0, dword [ebp + 12]
-        movd      xmm3, dword [ebp + 12]
-        punpckldq       xmm0, xmm3
-        punpcklqdq      xmm0, xmm1
+        vbroadcastss ymm0, dword [ebp + 12]
+
 memsetd_top:
-        movdqu [eax], xmm0
-        add eax, 16
-        sub dword [ebp + 16], 16
+        vmovdqu [eax], ymm0
+        add eax, 32
+        sub dword [ebp + 16], 8
         jg memsetd_top
 memsetd_end:
         leave

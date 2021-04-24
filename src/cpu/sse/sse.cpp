@@ -7,9 +7,10 @@ extern "C" void InitSSE();
 void SSE::Init()
 {
 	CPUInfo cpu;
-	if ( !cpu.QueryFeature(CPUInfo::FEAT_AVX) || !cpu.QueryFeature(CPUInfo::FEAT_XSAVE) || !cpu.QueryFeature(CPUInfo::FEAT_OSXSAVE) ) {
-        printf("AVX Not Supported\n");
-        return;
+	if ( !cpu.QueryFeature(CPUInfo::FEAT_AVX) || !cpu.QueryFeature(CPUInfo::FEAT_XSAVE) ) {
+        printf("AVX %s\n", cpu.QueryFeature(CPUInfo::FEAT_AVX) ? "Supported" : "Not Supported");
+		printf("XSAVE %s\n", cpu.QueryFeature(CPUInfo::FEAT_XSAVE) ? "Supported" : "Not Supported");
+        while (true);
 	}
 
 	InitSSE();

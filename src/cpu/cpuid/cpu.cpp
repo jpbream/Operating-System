@@ -19,7 +19,7 @@ extern "C" uint32_t GetProcessorSignature();
 extern "C" uint32_t GetMiscInfo();
 extern "C" uint32_t GetFeatures();
 extern "C" uint32_t GetNewFeatures();
-extern "C" uint32_t CheckERMSB();
+extern "C" uint32_t GetExtendedFeatures();
 
 extern "C" int GetDescriptors(uint8_t* codes);
 
@@ -47,6 +47,7 @@ CPUInfo::CPUInfo()
 	miscInfo = GetMiscInfo();
 	features = GetFeatures();
 	newFeatures = GetNewFeatures();
+	extendedFeatures = GetExtendedFeatures();
 
 	// this returns a garbage value in VirtualBox
 	// don't use it there
@@ -97,17 +98,17 @@ const char* CPUInfo::BrandNameLong()
 
 bool CPUInfo::QueryFeature(Feat1 feature)
 {
-	return features & feature > 0;
+	return (features & feature) > 0;
 }
 
 bool CPUInfo::QueryFeature(Feat2 feature)
 {
-	return newFeatures & feature > 0;
+	return (newFeatures & feature) > 0;
 }
 
-bool CPUInfo::HasERMSB()
+bool CPUInfo::QueryFeature(FeatExt feature)
 {
-	return CheckERMSB() & (1<<9) > 0;
+	return (extendedFeatures & feature) > 0;
 }
 
 int CPUInfo::NumCacheDescriptors()

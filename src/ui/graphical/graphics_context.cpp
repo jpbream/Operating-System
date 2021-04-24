@@ -16,7 +16,7 @@ void GraphicsContext::FillScreen(Color color)
     uint64_t* end = (uint64_t*)(backbuffer + width * height);
     uint64_t* traveller = (uint64_t*)backbuffer;
 
-    memsetd(backbuffer, color.value, width * height * 4);
+    memsetd(backbuffer, color.value, width * height);
 }
 
 void GraphicsContext::FillRect(uint32_t x, uint32_t y, uint32_t width, uint32_t height, Color color)

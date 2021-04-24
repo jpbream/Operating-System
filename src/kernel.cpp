@@ -23,6 +23,8 @@
 #include "sse.h"
 #include "memory.h"
 
+#define TEXT_MODE false
+
 void taskA() {
     while (true) {
         int num = 100000000;
@@ -89,27 +91,6 @@ extern "C" void kernelMain(multiboot_info_t* info, uint32_t magicNumber) {
     printf("%x\n", info->framebuffer_addr);
     printf("%d %d\n", info->framebuffer_width, info->framebuffer_height);
 
-    // if (info->flags & (1<<6))
-    // {
-    //   multiboot_memory_map_t *mmap;
-      
-    //   printf ("mmap_addr = %x, mmap_length = %d\n",
-    //           (unsigned) info->mmap_addr, (unsigned) info->mmap_length);
-    //   for (mmap = (multiboot_memory_map_t *) info->mmap_addr;
-    //        (unsigned long) mmap < info->mmap_addr + info->mmap_length;
-    //        mmap = (multiboot_memory_map_t *) ((unsigned long) mmap
-    //                                 + mmap->size + sizeof (mmap->size)))
-    //     printf (" size = %d, base_addr = %x,"
-    //             " length = %d, type = %d\n",
-    //             (unsigned) mmap->size,
-    //             (unsigned) (mmap->addr),
-    //             (unsigned) (mmap->len),
-    //             (unsigned) mmap->type);
-    // }
-    // else {
-    //     printf("Memory bit not set\n");
-    // }
-
     MemoryManager memoryManager(heap, memUpper);
 
     DriverManager drivers;
@@ -131,46 +112,50 @@ extern "C" void kernelMain(multiboot_info_t* info, uint32_t magicNumber) {
 
     PS2Keyboard kbd(&idt);
     drivers.AddDriver(&kbd);
-    kbd.SetEventHandler(&desktop);
-    //kbd.SetEventHandler(&console);
 
     PS2Mouse mouse(&idt);
     drivers.AddDriver(&mouse);
-    mouse.SetEventHandler(&desktop);
-    //mouse.SetEventHandler(&console);
+
+    if (TEXT_MODE) {
+        kbd.SetEventHandler(&console);
+        mouse.SetEventHandler(&console);
+        
+    }
+    else {
+        kbd.SetEventHandler(&desktop);
+        mouse.SetEventHandler(&desktop);
+    }
 
     GraphicsContext* gfx;
-    //if (info->framebuffer_width > 400) {
-        //gfx = new GraphicsContext((uint32_t*)info->framebuffer_addr, info->framebuffer_width, info->framebuffer_height);
+    if (info->framebuffer_width > 400) {
         GraphicsContext g((uint32_t*)info->framebuffer_addr, info->framebuffer_width, info->framebuffer_height);
         gfx = &g;
-    // }
-    // else {
-    //     VGAGraphicsMode* g = new VGAGraphicsMode();
-    //     g->Activate();
-    //     gfx = g;
-    // }
-
-    //VGATextMode vgaText;
-    //vgaText.Activate();
+    }
+    else if (! TEXT_MODE) {
+        VGAGraphicsMode* g = new VGAGraphicsMode();
+        g->Activate();
+        gfx = g;
+    }
 
     drivers.ActivateAll();
 
-    // CPUInfo* cpu = new CPUInfo();
-    // printf("%s\n", cpu->VendorID());
-    // printf(" ERMSB %s\n", cpu->HasERMSB() ? "Supported" : "Not Supported");
-    // printf("SSE %s\n", cpu->QueryFeature(CPUInfo::FEAT_SSE) ? "Supported" : "Not Supported");
-    // printf("SSE2 %s\n", cpu->QueryFeature(CPUInfo::FEAT_SSE2) ? "Supported" : "Not Supported");
-    // printf("SSE3 %s\n", cpu->QueryFeature(CPUInfo::FEAT_SSE3) ? "Supported" : "Not Supported");
-    // printf("SSE4 %s\n", cpu->QueryFeature(CPUInfo::FEAT_SSE4_1) ? "Supported" : "Not Supported");
-    // printf("AVX %s\n", cpu->QueryFeature(CPUInfo::FEAT_AVX) ? "Supported" : "Not Supported");
-    // delete cpu;
+    CPUInfo cpu;
+    printf("%s\n", cpu.VendorID());
+    printf("SSE %s\n", cpu.QueryFeature(CPUInfo::FEAT_SSE) ? "Supported" : "Not Supported");
+    printf("SSE2 %s\n", cpu.QueryFeature(CPUInfo::FEAT_SSE2) ? "Supported" : "Not Supported");
+    printf("SSE3 %s\n", cpu.QueryFeature(CPUInfo::FEAT_SSE3) ? "Supported" : "Not Supported");
+    printf("SSE4_1 %s\n", cpu.QueryFeature(CPUInfo::FEAT_SSE4_1) ? "Supported" : "Not Supported");
+    printf("SSE4_2 %s\n", cpu.QueryFeature(CPUInfo::FEAT_SSE4_2) ? "Supported" : "Not Supported");
+    printf("AVX %s\n", cpu.QueryFeature(CPUInfo::FEAT_AVX) ? "Supported" : "Not Supported");
+    printf("AVX2 %s\n", cpu.QueryFeature(CPUInfo::FEAT_AVX2) ? "Supported" : "Not Supported");
 
     EnableInterrupts();
 
     while (true) {
-        desktop.Draw(gfx);
-        gfx->PresentVSync();
+        if (! TEXT_MODE) {
+            desktop.Draw(gfx);
+            gfx->PresentVSync();
+        }
     }
 
     while (true);

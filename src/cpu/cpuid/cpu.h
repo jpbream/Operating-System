@@ -34,6 +34,8 @@ private:
     uint32_t newFeatures; // ecx
     uint32_t features; // edx
 
+    uint32_t extendedFeatures;
+
     // INPUT EAX = 2
     uint32_t descriptor1; // eax
     uint32_t descriptor2; // ebx
@@ -147,8 +149,10 @@ public:
         FEAT_HTT = 1 << 28,
 
         // thermal monitor supported
-        FEAT_TM = 1 << 29
+        FEAT_TM = 1 << 29,
 
+        // pending break enabled
+        FEAT_PBE = 1 << 31
 	};
 
     // features sent to the ecx register
@@ -180,9 +184,17 @@ public:
         FEAT_AES = 1 << 25,
         FEAT_XSAVE = 1 << 26,
         FEAT_OSXSAVE = 1 << 27,
-        FEAT_AVX = 1 << 28
-
+        FEAT_AVX = 1 << 28,
+        FEAT_F16C = 1 << 29,
+        FEAT_RDRAND = 1 << 30
 	};
+
+    enum FeatExt {
+
+        FEAT_AVX2 = 1 << 5,
+        FEAT_ERMSB = 1 << 9,
+        FEAT_AVX512F = 1 << 16
+    };
 
 	const char* VendorID();
     //const char* Name();
@@ -190,6 +202,7 @@ public:
     const char* BrandNameLong();
 	bool QueryFeature(Feat1 feature);
 	bool QueryFeature(Feat2 feature);
+    bool QueryFeature(FeatExt feature);
     bool HasERMSB();
 
     int NumCacheDescriptors();

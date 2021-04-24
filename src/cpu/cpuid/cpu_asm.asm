@@ -174,12 +174,15 @@ GetNewFeatures:
 
 	ret
 
-global CheckERMSB
-CheckERMSB:
+global GetExtendedFeatures
+GetExtendedFeatures:
 	push ebx
 	mov eax, 7h
 	mov ecx, 0
 	cpuid
+
+	; there are also features in ebx and edx,
+	; but i am ignoring these
 	mov eax, ebx
 	pop ebx
 	ret
