@@ -1,6 +1,7 @@
 #include "graphics_context.h"
 #include "memory_manager.h"
 #include "port.h"
+#include "memory.h"
 
 GraphicsContext::GraphicsContext(uint32_t* framebuffer, int width, int height)
 : framebuffer(framebuffer), width(width), height(height)
@@ -15,10 +16,7 @@ void GraphicsContext::FillScreen(Color color)
     uint64_t* end = (uint64_t*)(backbuffer + width * height);
     uint64_t* traveller = (uint64_t*)backbuffer;
 
-    while (traveller != end) {
-        *traveller = value;
-        traveller++;
-    }
+    memsetd(backbuffer, color.value, width * height * 4);
 }
 
 void GraphicsContext::FillRect(uint32_t x, uint32_t y, uint32_t width, uint32_t height, Color color)
@@ -46,7 +44,6 @@ void GraphicsContext::PresentVSync()
     uint64_t* traveller = (uint64_t*)backbuffer;
     uint64_t* dest = (uint64_t*)framebuffer;
 
-    while (traveller != end) {
-        *dest++ = *traveller++;
-    }
+    // copying to the memory mapped framebuffer with avx doesn't work for some reason
+    memcpy_sse(framebuffer, backbuffer, width * height * 4);
 }

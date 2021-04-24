@@ -20,6 +20,8 @@
 #include "memory_manager.h"
 #include "multiboot.h"
 #include "graphics_context.h"
+#include "sse.h"
+#include "memory.h"
 
 void taskA() {
     while (true) {
@@ -69,6 +71,7 @@ extern "C" void kernelMain(multiboot_info_t* info, uint32_t magicNumber) {
     idt.Activate();
 
     FPU::Init();
+    SSE::Init();
 
     // start the heap at 10 Mb
     size_t heap = 10 * 1024 * 1024;                     // padding
@@ -86,33 +89,33 @@ extern "C" void kernelMain(multiboot_info_t* info, uint32_t magicNumber) {
     printf("%x\n", info->framebuffer_addr);
     printf("%d %d\n", info->framebuffer_width, info->framebuffer_height);
 
-    if (info->flags & (1<<6))
-    {
-      multiboot_memory_map_t *mmap;
+    // if (info->flags & (1<<6))
+    // {
+    //   multiboot_memory_map_t *mmap;
       
-      printf ("mmap_addr = %x, mmap_length = %d\n",
-              (unsigned) info->mmap_addr, (unsigned) info->mmap_length);
-      for (mmap = (multiboot_memory_map_t *) info->mmap_addr;
-           (unsigned long) mmap < info->mmap_addr + info->mmap_length;
-           mmap = (multiboot_memory_map_t *) ((unsigned long) mmap
-                                    + mmap->size + sizeof (mmap->size)))
-        printf (" size = %d, base_addr = %x,"
-                " length = %d, type = %d\n",
-                (unsigned) mmap->size,
-                (unsigned) (mmap->addr),
-                (unsigned) (mmap->len),
-                (unsigned) mmap->type);
-    }
-    else {
-        printf("Memory bit not set\n");
-    }
+    //   printf ("mmap_addr = %x, mmap_length = %d\n",
+    //           (unsigned) info->mmap_addr, (unsigned) info->mmap_length);
+    //   for (mmap = (multiboot_memory_map_t *) info->mmap_addr;
+    //        (unsigned long) mmap < info->mmap_addr + info->mmap_length;
+    //        mmap = (multiboot_memory_map_t *) ((unsigned long) mmap
+    //                                 + mmap->size + sizeof (mmap->size)))
+    //     printf (" size = %d, base_addr = %x,"
+    //             " length = %d, type = %d\n",
+    //             (unsigned) mmap->size,
+    //             (unsigned) (mmap->addr),
+    //             (unsigned) (mmap->len),
+    //             (unsigned) mmap->type);
+    // }
+    // else {
+    //     printf("Memory bit not set\n");
+    // }
 
     MemoryManager memoryManager(heap, memUpper);
 
     DriverManager drivers;
 
     PCI pci;
-    pci.SelectDrivers(&drivers, &idt);
+    //pci.SelectDrivers(&drivers, &idt);
 
     Desktop desktop(
         info->framebuffer_width > 400 ? info->framebuffer_width : 320, 
@@ -128,19 +131,19 @@ extern "C" void kernelMain(multiboot_info_t* info, uint32_t magicNumber) {
 
     PS2Keyboard kbd(&idt);
     drivers.AddDriver(&kbd);
-    //kbd.SetEventHandler(&desktop);
-    kbd.SetEventHandler(&console);
+    kbd.SetEventHandler(&desktop);
+    //kbd.SetEventHandler(&console);
 
     PS2Mouse mouse(&idt);
     drivers.AddDriver(&mouse);
-    //mouse.SetEventHandler(&desktop);
-    mouse.SetEventHandler(&console);
+    mouse.SetEventHandler(&desktop);
+    //mouse.SetEventHandler(&console);
 
-    // GraphicsContext* gfx;
-    // if (info->framebuffer_width > 400) {
-    //     //gfx = new GraphicsContext((uint32_t*)info->framebuffer_addr, info->framebuffer_width, info->framebuffer_height);
-    //     GraphicsContext g((uint32_t*)info->framebuffer_addr, info->framebuffer_width, info->framebuffer_height);
-    //     gfx = &g;
+    GraphicsContext* gfx;
+    //if (info->framebuffer_width > 400) {
+        //gfx = new GraphicsContext((uint32_t*)info->framebuffer_addr, info->framebuffer_width, info->framebuffer_height);
+        GraphicsContext g((uint32_t*)info->framebuffer_addr, info->framebuffer_width, info->framebuffer_height);
+        gfx = &g;
     // }
     // else {
     //     VGAGraphicsMode* g = new VGAGraphicsMode();
@@ -153,15 +156,21 @@ extern "C" void kernelMain(multiboot_info_t* info, uint32_t magicNumber) {
 
     drivers.ActivateAll();
 
-    CPUInfo* cpu = new CPUInfo();
-    printf("%s\n", cpu->VendorID());
-    delete cpu;
+    // CPUInfo* cpu = new CPUInfo();
+    // printf("%s\n", cpu->VendorID());
+    // printf(" ERMSB %s\n", cpu->HasERMSB() ? "Supported" : "Not Supported");
+    // printf("SSE %s\n", cpu->QueryFeature(CPUInfo::FEAT_SSE) ? "Supported" : "Not Supported");
+    // printf("SSE2 %s\n", cpu->QueryFeature(CPUInfo::FEAT_SSE2) ? "Supported" : "Not Supported");
+    // printf("SSE3 %s\n", cpu->QueryFeature(CPUInfo::FEAT_SSE3) ? "Supported" : "Not Supported");
+    // printf("SSE4 %s\n", cpu->QueryFeature(CPUInfo::FEAT_SSE4_1) ? "Supported" : "Not Supported");
+    // printf("AVX %s\n", cpu->QueryFeature(CPUInfo::FEAT_AVX) ? "Supported" : "Not Supported");
+    // delete cpu;
 
     EnableInterrupts();
 
     while (true) {
-        //desktop.Draw(gfx);
-        //gfx->PresentVSync();
+        desktop.Draw(gfx);
+        gfx->PresentVSync();
     }
 
     while (true);

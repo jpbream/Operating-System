@@ -190,6 +190,7 @@ public:
     const char* BrandNameLong();
 	bool QueryFeature(Feat1 feature);
 	bool QueryFeature(Feat2 feature);
+    bool HasERMSB();
 
     int NumCacheDescriptors();
     const char* GetCacheDescriptor(int idx);

@@ -38,7 +38,7 @@ public:
 
 class CompositeWidget : public Widget
 {
-private:
+protected:
     Widget* children[100];
     int numChildren;
     Widget* focusedChild;

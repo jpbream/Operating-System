@@ -148,7 +148,7 @@ GetFeatures:
 	mov eax, 1
 	cpuid
 
-	mov ebx, edx
+	mov eax, edx
 
 	pop ecx
 	pop edx
@@ -166,12 +166,22 @@ GetNewFeatures:
 	mov eax, 1
 	cpuid
 
-	mov ebx, ecx
+	mov eax, ecx
 
 	pop ecx
 	pop edx
 	pop ebx
 
+	ret
+
+global CheckERMSB
+CheckERMSB:
+	push ebx
+	mov eax, 7h
+	mov ecx, 0
+	cpuid
+	mov eax, ebx
+	pop ebx
 	ret
 
 global GetDescriptors

@@ -8,7 +8,11 @@ Desktop::Desktop(int width, int height, Color color)
 }
 void Desktop::Draw(GraphicsContext* gfx)
 {
-    CompositeWidget::Draw(gfx);
+    gfx->FillScreen(color);
+    for (int i = 0; i < numChildren; ++i) {
+        children[i]->Draw(gfx);
+    }
+    //CompositeWidget::Draw(gfx);
     gfx->FillRect(mouseX, mouseY, width / 250, width / 250, (Color){255, 255, 255, 255}); 
 }
 void Desktop::OnMouseMove(double dx, double dy)

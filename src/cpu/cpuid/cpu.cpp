@@ -19,6 +19,7 @@ extern "C" uint32_t GetProcessorSignature();
 extern "C" uint32_t GetMiscInfo();
 extern "C" uint32_t GetFeatures();
 extern "C" uint32_t GetNewFeatures();
+extern "C" uint32_t CheckERMSB();
 
 extern "C" int GetDescriptors(uint8_t* codes);
 
@@ -102,6 +103,11 @@ bool CPUInfo::QueryFeature(Feat1 feature)
 bool CPUInfo::QueryFeature(Feat2 feature)
 {
 	return newFeatures & feature > 0;
+}
+
+bool CPUInfo::HasERMSB()
+{
+	return CheckERMSB() & (1<<9) > 0;
 }
 
 int CPUInfo::NumCacheDescriptors()
