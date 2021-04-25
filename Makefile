@@ -15,8 +15,8 @@ INCLUDES = $(foreach dir, $(SOURCEDIRS), $(addprefix -I, $(dir)))
 OBJDIRS := $(subst $(SOURCEDIR),$(BUILDDIR),$(SOURCEDIRS))
 OBJS := $(subst $(SOURCEDIR),$(BUILDDIR),$(patsubst %.cpp,%.o,$(patsubst %.asm,%.o,$(patsubst %.c,%.o,$(SOURCES)))))
 
-C_OPTIONS = -MD -m32 -std=c99 -I include-freestanding-c99 -ffreestanding -nostdlib -fno-builtin -fno-exceptions -fno-leading-underscore -ffloat-store $(INCLUDES)
-CPP_OPTIONS = -MD -m32 -std=c++17 -I include-freestanding-c++17 -ffreestanding -fno-use-cxa-atexit -nostdlib -fno-builtin -fno-rtti -fno-exceptions -ffloat-store $(INCLUDES)
+C_OPTIONS = -g -MD -m32 -std=c99 -I include-freestanding-c99 -ffreestanding -nostdlib -fno-builtin -fno-exceptions -fno-leading-underscore -ffloat-store $(INCLUDES)
+CPP_OPTIONS = -g -MD -m32 -std=c++17 -I include-freestanding-c++17 -ffreestanding -fno-use-cxa-atexit -nostdlib -fno-builtin -fno-rtti -fno-exceptions -ffloat-store $(INCLUDES)
 ASM_OPTIONS = -f elf
 LINK_OPTIONS = -melf_i386 -L $(OUTPUT)/lib/ -lgcc
 
