@@ -14,6 +14,9 @@ Run this command to build:
 `bash build_os.sh ENV`
 where `ENV` will be defined as a Preprocessor constant. This is to control which environment the OS is compiled for.
 
+### Tools
+- A program called [Rufus](https://rufus.ie/en_US/) for downloading the iso to a flashdrive
+
 ### Laptop
 - Set the `ENV` argument to `LAPTOP`.
 - Use the `rufus` program to write the generated `os.iso` file to a flash drive. When the box appears, select `Write in dd mode`. Plug the flash drive into your laptop and turn it on. You will need to configure your computer to boot from the flash drive using the BIOS.
@@ -28,5 +31,3 @@ where `ENV` will be defined as a Preprocessor constant. This is to control which
 To create a floppy.img file and write a bootloader named `bootloader.bin`:
 - `dd if=/dev/zero of=floppy.img bs=1024 count=1440`
 - `dd if=bootloader.bin of=floppy.img seek=0 count=1 conv=notrunc`
-
-The grub source folder is included to satisfy the GPL.
