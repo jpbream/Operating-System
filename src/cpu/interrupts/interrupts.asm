@@ -5,26 +5,26 @@ HARDWARE_OFFSET         equ 0x20        ; how much to bias the hardware interrup
                                         ; collide with the exception interruptss
 
 %macro AddExceptionHandler 1
-            global  HandleException%1
-HandleException%1:
-    mov         dword [interrupt_number], %1    ; grab the exception number
-    push        dword [ZERO]                    ; push a dummy error code onto the stack
-    jmp         interrupt_handler               ; handle the exception
+    global  HandleException%1
+    HandleException%1:
+        mov         dword [interrupt_number], %1    ; grab the exception number
+        push        dword [ZERO]                    ; push a dummy error code onto the stack
+        jmp         interrupt_handler               ; handle the exception
 %endmacro
 
 %macro AddExceptionHandlerWithErrorCode 1
-            global  HandleException%1
-HandleException%1:
-    mov         dword [interrupt_number], %1    ; grab the exception number
-    jmp         interrupt_handler               ; handle the exception
+    global  HandleException%1
+    HandleException%1:
+        mov         dword [interrupt_number], %1    ; grab the exception number
+        jmp         interrupt_handler               ; handle the exception
 %endmacro
 
 %macro AddInterruptHandler 1
-            global  HandleInterrupt%1
-HandleInterrupt%1:
-    mov         dword [interrupt_number], %1 + HARDWARE_OFFSET  ; grab the interrupt number biased by the hardware offset
-    push        dword [ZERO]                                    ; push a dummy error code onto the stack
-    jmp         interrupt_handler                               ; handle the interrupt
+    global  HandleInterrupt%1
+    HandleInterrupt%1:
+        mov         dword [interrupt_number], %1 + HARDWARE_OFFSET  ; grab the interrupt number biased by the hardware offset
+        push        dword [ZERO]                                    ; push a dummy error code onto the stack
+        jmp         interrupt_handler                               ; handle the interrupt
 %endmacro
 
 ; exceptions 8, and 10-14 post error messages

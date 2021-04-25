@@ -28,7 +28,7 @@ CHECKSUM        equ -(MAGIC + FLAGS)    ; MAGIC + FLAGS + CHECKSUM = 0
         dd      0
         dd      0
 
-        dd      0                       ; make this zero to get a larger frame buffer 
+        dd      1                       ; make this zero to get a larger frame buffer 
         dd      0                       ; desired width (0 to default)
         dd      0                       ; desired height (0 to default)
         dd      0                       ; desired color depth (0 to default)

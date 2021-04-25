@@ -23,7 +23,7 @@
 #include "sse.h"
 #include "memory.h"
 
-#define TEXT_MODE false
+#define TEXT_MODE true
 
 void taskA() {
     while (true) {
