@@ -1,33 +1,24 @@
 
-section .text
-
-global ActivateGDT
-global ActivateIDT
-global EnableInterrupts
-global DisableInterrupts
-
-; void ActivateGDT(GDT* gdt)
-ActivateGDT:
-    push edx
-    mov edx, [esp + 8]
-    lgdt [edx]
-    pop edx
+            section .text
+            global ActivateGDT
+            global ActivateIDT
+            global EnableInterrupts
+            global DisableInterrupts
+                                    
+ActivateGDT:                            ; void ActivateGDT(GDT* gdt)
+    mov         edx, [esp + 8]
+    lgdt        [edx]
     ret
 
-; void ActivateIDT(IDT* idt)
-ActivateIDT:
-    push edx
-    mov edx, [esp + 8]
-    lidt [edx]
-    pop edx
+ActivateIDT:                            ; void ActivateIDT(IDT* idt)
+    mov         edx, [esp + 8]
+    lidt        [edx]
     ret
 
-; void EnableInterrupts()
-EnableInterrupts:
+EnableInterrupts:                       ; void EnableInterrupts()
     sti
     ret
 
-; void DisableInterrupts()
-DisableInterrupts:
+DisableInterrupts:                      ; void DisableInterrupts()
     cli
     ret

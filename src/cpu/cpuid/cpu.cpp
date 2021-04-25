@@ -1,10 +1,6 @@
 #include "cpu.h"
 #include "print.h"
 
-// which bit in eflags to test to determine if
-// the cpuid instruction set is available
-extern "C" constexpr int EFLAGS_BIT = 21;
-
 // checks if the cpuid instruction set is enabled
 extern "C" bool CheckCPUID();
 

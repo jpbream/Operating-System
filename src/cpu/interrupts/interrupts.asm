@@ -1,36 +1,30 @@
-section .text
-
-HARDWARE_OFFSET equ 0x20
-extern InterruptCallback
+            section .text
+            extern InterruptCallback
+                                        
+HARDWARE_OFFSET         equ 0x20        ; how much to bias the hardware interrupts by to not
+                                        ; collide with the exception interruptss
 
 %macro AddExceptionHandler 1
-
-    global  HandleException%1
-    HandleException%1:
-        mov dword [interrupt_number], %1
-        push dword [ZERO] ; push a dummy error code onto the stack
-        jmp interrupt_handler
-
+            global  HandleException%1
+HandleException%1:
+    mov         dword [interrupt_number], %1    ; grab the exception number
+    push        dword [ZERO]                    ; push a dummy error code onto the stack
+    jmp         interrupt_handler               ; handle the exception
 %endmacro
 
 %macro AddExceptionHandlerWithErrorCode 1
-
-    global  HandleException%1
-    HandleException%1:
-        mov dword [interrupt_number], %1
-
-        jmp interrupt_handler
-
+            global  HandleException%1
+HandleException%1:
+    mov         dword [interrupt_number], %1    ; grab the exception number
+    jmp         interrupt_handler               ; handle the exception
 %endmacro
 
 %macro AddInterruptHandler 1
-
-    global  HandleInterrupt%1
-    HandleInterrupt%1:
-        mov dword [interrupt_number], %1 + HARDWARE_OFFSET
-        push dword [ZERO] ; push a dummy error code onto the stack
-        jmp interrupt_handler
-
+            global  HandleInterrupt%1
+HandleInterrupt%1:
+    mov         dword [interrupt_number], %1 + HARDWARE_OFFSET  ; grab the interrupt number biased by the hardware offset
+    push        dword [ZERO]                                    ; push a dummy error code onto the stack
+    jmp         interrupt_handler                               ; handle the interrupt
 %endmacro
 
 ; exceptions 8, and 10-14 post error messages
@@ -86,44 +80,39 @@ AddInterruptHandler 0x0D
 AddInterruptHandler 0x0E
 AddInterruptHandler 0x0F
 
-interrupt_handler:
+interrupt_handler:                          ; several registers have already been pushed by the interrupt
 
-    ; push registers in the order the CPUState struct expects them
-    ; (reverse)
-    push ebp
-    push edi
-    push esi 
+    push        ebp                         ; push registers in the order the CPUState struct expects them                          
+    push        edi                         ; (reverse)
+    push        esi 
 
-    push edx 
-    push ecx 
-    push ebx 
-    push eax
+    push        edx 
+    push        ecx 
+    push        ebx 
+    push        eax
     
-    push esp ; esp acts as a pointer to all the registers we just pushed
-    push dword [interrupt_number]
-    call InterruptCallback
-    mov esp, eax ; switch the stack to a new task
+    push        esp                         ; esp acts as a pointer to all the registers we just pushed
+    push        dword [interrupt_number]    ; push interrupt argument onto the stack
+    call        InterruptCallback           ; call the C++ handler
+    mov         esp, eax                    ; switch the stack to the task state returned from the handler
 
-    ; restore registers, but this time for the new task
-    pop eax 
-    pop ebx 
-    pop ecx 
-    pop edx 
+    
+    pop         eax                         ; restore registers, but this time for the new task
+    pop         ebx 
+    pop         ecx 
+    pop         edx 
 
-    pop esi 
-    pop edi 
-    pop ebp
+    pop         esi 
+    pop         edi 
+    pop         ebp
 
-    add esp, 4 ; skip over the error code
+    add         esp, 4                      ; skip over the error code
 
 global IgnoreInterrupt
 IgnoreInterrupt:
 
-    iret
+    iret                                    ; iret will retore the remaining registers                 
 
-
-section .data
-
-interrupt_number dd 0
-
-ZERO dd 0
+            section .data
+interrupt_number        dd 0
+ZERO                    dd 0
