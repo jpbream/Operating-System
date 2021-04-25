@@ -27,7 +27,7 @@ $(BUILDDIR)/%.o: $(SOURCEDIR)/%.c
 	@gcc -c -o $@ $< $(C_OPTIONS) -D $(ENV)
 
 $(BUILDDIR)/%.o: $(SOURCEDIR)/%.asm
-	@nasm -o $@ $< $(ASM_OPTIONS)
+	@nasm -o $@ $< $(ASM_OPTIONS) -D $(ENV)
 
 build:
 	@mkdir -p $(BUILDDIR)

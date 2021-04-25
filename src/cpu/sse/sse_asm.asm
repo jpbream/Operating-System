@@ -15,10 +15,12 @@ InitSSE:                                ; void InitSSE();
     ; will also need a way to save/restore these registers
     ; using the XSAVE interface
 
+%ifndef QEMU
     mov         ecx, 0
     xgetbv                              ; Load XCR0 register
     or          eax, 7                  ; Set AVX, SSE, X87 bits
     xsetbv                              ; Save back to XCR0
+%endif
 
 	ret
 

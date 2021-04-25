@@ -2,7 +2,11 @@
 #include "ps2.h"
 #include "print.h"
 
-#define PACKET_START 0
+#ifdef QEMU
+	#define PACKET_START 2
+#else
+	#define PACKET_START 0
+#endif
 
 PS2Mouse::PS2Mouse(IDT* idt)
 {

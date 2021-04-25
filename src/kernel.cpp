@@ -23,7 +23,7 @@
 #include "sse.h"
 #include "memory.h"
 
-#define TEXT_MODE true
+#define TEXT_MODE false
 
 void taskA() {
     while (true) {
@@ -132,9 +132,9 @@ extern "C" void kernelMain(multiboot_info_t* info, uint32_t magicNumber) {
         gfx = &g;
     }
     else if (! TEXT_MODE) {
-        VGAGraphicsMode* g = new VGAGraphicsMode();
-        g->Activate();
-        gfx = g;
+        VGAGraphicsMode g;
+        g.Activate();
+        gfx = &g;
     }
 
     drivers.ActivateAll();
