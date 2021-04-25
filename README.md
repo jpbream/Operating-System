@@ -9,6 +9,7 @@ Install these packages to build (Linux):
 3. grub-common
 4. grub-pc-bin
 5. xorriso
+6. objdump (only needed if using the `debug` script)
 
 Run this command to build:
 `bash build_os.sh ENV`
@@ -16,6 +17,9 @@ where `ENV` will be defined as a Preprocessor constant. This is to control which
 
 ### Tools
 - A program called [Rufus](https://rufus.ie/en_US/) for downloading the iso to a flashdrive
+
+### Debugging
+- The `debug.sh` script can be used to locate the address of faulting instructions. `bash debug.sh` will generate a dissasembly of the entire binary. `bash debug.sh find 0xstart 0xend` will dissassemble print all lines between the addresses `start` and `end`
 
 ### Laptop
 - Set the `ENV` argument to `LAPTOP`.
