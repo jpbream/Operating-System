@@ -5,11 +5,14 @@
 ### Building
 Install these packages to build (Linux):
 1. gcc
-2. make
-3. grub-common
-4. grub-pc-bin
-5. xorriso
-6. objdump (only needed if using the `debug` script)
+2. g++
+3. ld (Linker)
+4. nasm
+5. make
+6. grub-common
+7. grub-pc-bin
+8. xorriso
+9. objdump (only needed if using the `debug` script)
 
 Run this command to build:
 `bash build_os.sh ENV`
@@ -20,6 +23,7 @@ where `ENV` will be defined as a Preprocessor constant. This is to control which
 
 ### Debugging
 - The `debug.sh` script can be used to locate the address of faulting instructions. `bash debug.sh` will generate a dissasembly of the entire binary. `bash debug.sh find 0xstart 0xend` will dissassemble print all lines between the addresses `start` and `end`
+- The `run_qemu_debug.bat` script will launch QEMU in a debug configuration. It will log events to the console, and it can be connected with `gdb`. To connect with `gdb`, launch `gdb` on the `os.bin` file, they type `target remote localhost:1234`. This cannot be done with `WSL`. To unpause the `QEMU` windows type `continue`
 
 ### Laptop
 - Set the `ENV` argument to `LAPTOP`.
