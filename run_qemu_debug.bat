@@ -8,4 +8,7 @@ qemu-system-i386                                 ^
   -smp 1                                         ^
   -usb                                           ^
   -vga std                                       ^
-  -no-reboot -no-shutdown                        
+  -no-reboot -no-shutdown                        ^
+  -d int,guest_errors                            ^
+  -S                                             ^
+  -s
