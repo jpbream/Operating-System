@@ -22,8 +22,9 @@
 #include "graphics_context.h"
 #include "sse.h"
 #include "memory.h"
+#include "page_manager.h"
 
-#define TEXT_MODE false
+#define TEXT_MODE true
 
 void taskA() {
     while (true) {
@@ -56,6 +57,8 @@ void operator delete(void* ptr, unsigned int)
     MemoryManager::activeMemoryManager->free(ptr);
 }
 
+PageManager pm;
+
 extern "C" void kernelMain(multiboot_info_t* info, uint32_t magicNumber) {
     
     clearScreen();
@@ -81,15 +84,8 @@ extern "C" void kernelMain(multiboot_info_t* info, uint32_t magicNumber) {
 
     printf("Heap Size: %d Mb\n", memUpper / 1024 / 1024);
 
-    if (info->flags | MULTIBOOT_INFO_VBE_INFO) {
-        printf("There is video info.\n");
-    }
-    if (info->flags | MULTIBOOT_INFO_FRAMEBUFFER_INFO) {
-        printf("There is framebuffer info.\n");
-    }
-
-    printf("%x\n", info->framebuffer_addr);
-    printf("%d %d\n", info->framebuffer_width, info->framebuffer_height);
+    
+    pm.Activate();
 
     MemoryManager memoryManager(heap, memUpper);
 
@@ -138,16 +134,6 @@ extern "C" void kernelMain(multiboot_info_t* info, uint32_t magicNumber) {
     }
 
     drivers.ActivateAll();
-
-    CPUInfo cpu;
-    printf("%s\n", cpu.VendorID());
-    printf("SSE %s\n", cpu.QueryFeature(CPUInfo::FEAT_SSE) ? "Supported" : "Not Supported");
-    printf("SSE2 %s\n", cpu.QueryFeature(CPUInfo::FEAT_SSE2) ? "Supported" : "Not Supported");
-    printf("SSE3 %s\n", cpu.QueryFeature(CPUInfo::FEAT_SSE3) ? "Supported" : "Not Supported");
-    printf("SSE4_1 %s\n", cpu.QueryFeature(CPUInfo::FEAT_SSE4_1) ? "Supported" : "Not Supported");
-    printf("SSE4_2 %s\n", cpu.QueryFeature(CPUInfo::FEAT_SSE4_2) ? "Supported" : "Not Supported");
-    printf("AVX %s\n", cpu.QueryFeature(CPUInfo::FEAT_AVX) ? "Supported" : "Not Supported");
-    printf("AVX2 %s\n", cpu.QueryFeature(CPUInfo::FEAT_AVX2) ? "Supported" : "Not Supported");
 
     EnableInterrupts();
 
