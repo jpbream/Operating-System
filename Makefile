@@ -1,9 +1,7 @@
 OUTPUT = .
 
-ENV := $(wordlist 2,$(words $(MAKECMDGOALS)),$(MAKECMDGOALS))
-$(eval $(ENV):;@:)
-
 PROJDIR := $(realpath $(CURDIR))
+
 SOURCEDIR := $(PROJDIR)/src
 BUILDDIR := $(PROJDIR)/bin
 
@@ -29,14 +27,15 @@ $(BUILDDIR)/%.o: $(SOURCEDIR)/%.c
 $(BUILDDIR)/%.o: $(SOURCEDIR)/%.asm
 	@nasm -o $@ $< $(ASM_OPTIONS) -D $(ENV)
 
-build:
+dirs:
 	@mkdir -p $(BUILDDIR)
 	@mkdir -p $(OBJDIRS)
 
-os.bin: link.ld $(OBJS)
+os.bin: clean dirs link.ld $(OBJS)
 	@ld -T link.ld -o $(OUTPUT)/os.bin $(OBJS) $(LINK_OPTIONS)
 
 clean:
-	rm -rf $(BUILDDIR)/*
+	@rm -rf $(BUILDDIR)/*
+
 
 -include $(OBJS:.o=.d)
