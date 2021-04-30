@@ -1,12 +1,14 @@
 #include "graphics_context.h"
-#include "memory_manager.h"
 #include "port.h"
 #include "memory.h"
+#include "memory_heap.h"
+
+extern MemoryHeap* kernelHeap;
 
 GraphicsContext::GraphicsContext(uint32_t* framebuffer, int width, int height)
 : framebuffer(framebuffer), width(width), height(height)
 {
-    backbuffer = (uint32_t*)MemoryManager::activeMemoryManager->malloc(width * height * sizeof(uint32_t));
+    backbuffer = (uint32_t*)kernelHeap->Allocate(width * height * sizeof(uint32_t));
 }
 
 void GraphicsContext::FillScreen(Color color)

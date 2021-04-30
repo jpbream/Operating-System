@@ -1,6 +1,5 @@
 #include "vga.h"
 #include "print.h"
-#include "memory_manager.h"
 
 VGA::VGA() :
     miscPort(0x3C2),

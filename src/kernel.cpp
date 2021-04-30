@@ -17,12 +17,13 @@
 #include "window.h"
 #include "task_manager.h"
 #include "task.h"
-#include "memory_manager.h"
 #include "multiboot.h"
 #include "graphics_context.h"
 #include "sse.h"
 #include "memory.h"
 #include "page_manager.h"
+#include "memory_heap.h"
+#include "linked_memory_heap.h"
 
 #define TEXT_MODE true
 
@@ -42,22 +43,25 @@ void taskB() {
     }
 }
 
+MemoryHeap* kernelHeap;
+
 void* operator new(size_t size)
 {
-    return MemoryManager::activeMemoryManager->malloc(size);
+    return kernelHeap->Allocate(size);
 }
 
 void operator delete(void* ptr)
 {
-    MemoryManager::activeMemoryManager->free(ptr);
+    kernelHeap->Free(ptr);
 }
 
 void operator delete(void* ptr, unsigned int)
 {
-    MemoryManager::activeMemoryManager->free(ptr);
+    kernelHeap->Free(ptr);
 }
 
 PageManager pm;
+
 
 extern "C" void kernelMain(multiboot_info_t* info, uint32_t magicNumber) {
     
@@ -87,7 +91,8 @@ extern "C" void kernelMain(multiboot_info_t* info, uint32_t magicNumber) {
     
     pm.Activate();
 
-    MemoryManager memoryManager(heap, memUpper);
+    LinkedMemoryHeap linkedHeap(heap, memUpper);
+    kernelHeap = &linkedHeap;
 
     DriverManager drivers;
 

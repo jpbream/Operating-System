@@ -1,11 +1,13 @@
 #include "vga_graphics.h"
-#include "memory_manager.h"
+#include "memory_heap.h"
+
+extern MemoryHeap* kernelHeap;
 
 VGAGraphicsMode::VGAGraphicsMode() 
 : VGA(), GraphicsContext(0, 320, 200)
 {
-    MemoryManager::activeMemoryManager->free(backbuffer);
-    backbuffer = (uint32_t*)MemoryManager::activeMemoryManager->malloc(width * height * sizeof(uint8_t));
+    kernelHeap->Free(backbuffer);
+    backbuffer = (uint32_t*)kernelHeap->Allocate(width * height * sizeof(uint8_t));
 }
 
 void VGAGraphicsMode::Activate()
