@@ -11,4 +11,4 @@ qemu-system-i386                                      ^
   -no-reboot -no-shutdown                             ^
   -d guest_errors                                     ^
   -S                                                  ^
-  -s                                                                                
+  -s
