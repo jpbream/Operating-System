@@ -5,8 +5,8 @@ ISODIR=image
 export ENV=$1
 
 make clean
-make dirs
 make os.bin
+make clean
 
 # ensure that the multiboot header was set
 # correctly in the binary

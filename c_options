@@ -1,0 +1,12 @@
+-Wall 
+-g 
+-MD 
+-m32 
+-std=c99 
+-I include-freestanding-c99 
+-ffreestanding 
+-nostdlib 
+-fno-builtin 
+-fno-exceptions 
+-fno-leading-underscore 
+-ffloat-store

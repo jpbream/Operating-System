@@ -13,29 +13,28 @@ INCLUDES = $(foreach dir, $(SOURCEDIRS), $(addprefix -I, $(dir)))
 OBJDIRS := $(subst $(SOURCEDIR),$(BUILDDIR),$(SOURCEDIRS))
 OBJS := $(subst $(SOURCEDIR),$(BUILDDIR),$(patsubst %.cpp,%.o,$(patsubst %.asm,%.o,$(patsubst %.c,%.o,$(SOURCES)))))
 
-C_OPTIONS = -g -MD -m32 -std=c99 -I include-freestanding-c99 -ffreestanding -nostdlib -fno-builtin -fno-exceptions -fno-leading-underscore -ffloat-store $(INCLUDES)
-CPP_OPTIONS = -g -MD -m32 -std=c++17 -I include-freestanding-c++17 -ffreestanding -fno-use-cxa-atexit -nostdlib -fno-builtin -fno-rtti -fno-exceptions -ffloat-store $(INCLUDES)
-ASM_OPTIONS = -f elf
+C_OPTIONS = @c_options $(INCLUDES) -D $(ENV)
+CPP_OPTIONS = @cpp_options $(INCLUDES) -D $(ENV)
+ASM_OPTIONS = -f elf -D $(ENV)
 LINK_OPTIONS = -melf_i386 -L $(OUTPUT)/lib/ -lgcc
 
 $(BUILDDIR)/%.o: $(SOURCEDIR)/%.cpp
-	@g++ -c -o $@ $< $(CPP_OPTIONS) -D $(ENV)
+	@g++ -c -o $@ $< $(CPP_OPTIONS)
 
 $(BUILDDIR)/%.o: $(SOURCEDIR)/%.c
-	@gcc -c -o $@ $< $(C_OPTIONS) -D $(ENV)
+	@gcc -c -o $@ $< $(C_OPTIONS)
 
 $(BUILDDIR)/%.o: $(SOURCEDIR)/%.asm
-	@nasm -o $@ $< $(ASM_OPTIONS) -D $(ENV)
+	@nasm -o $@ $< $(ASM_OPTIONS)
+
+os.bin: dirs link.ld $(OBJS)
+	@ld -T link.ld -o $(OUTPUT)/os.bin $(OBJS) $(LINK_OPTIONS)
 
 dirs:
 	@mkdir -p $(BUILDDIR)
 	@mkdir -p $(OBJDIRS)
 
-os.bin: clean dirs link.ld $(OBJS)
-	@ld -T link.ld -o $(OUTPUT)/os.bin $(OBJS) $(LINK_OPTIONS)
-
 clean:
 	@rm -rf $(BUILDDIR)/*
-
 
 -include $(OBJS:.o=.d)

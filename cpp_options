@@ -1,0 +1,13 @@
+-Wall 
+-g 
+-MD 
+-m32 
+-std=c++17 
+-I include-freestanding-c++17 
+-ffreestanding 
+-fno-use-cxa-atexit 
+-nostdlib 
+-fno-builtin 
+-fno-rtti 
+-fno-exceptions 
+-ffloat-store

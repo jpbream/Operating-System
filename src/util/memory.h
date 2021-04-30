@@ -4,6 +4,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
+// look into the "indirect function" gcc attribute for these functions
+ 
 // n must be a multiple of 16
 extern "C" void *memcpy_sse(void *dest, const void * src, size_t n);
 
