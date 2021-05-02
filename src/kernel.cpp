@@ -50,7 +50,17 @@ void* operator new(size_t size)
     return kernelHeap->Allocate(size);
 }
 
+void* operator new[](size_t size)
+{
+    return kernelHeap->Allocate(size);
+}
+
 void operator delete(void* ptr)
+{
+    kernelHeap->Free(ptr);
+}
+
+void operator delete[](void* ptr)
 {
     kernelHeap->Free(ptr);
 }
@@ -86,13 +96,26 @@ extern "C" void kernelMain(multiboot_info_t* info, uint32_t magicNumber) {
     size_t heap = 10 * 1024 * 1024;                     // padding
     uint32_t memUpper = info->mem_upper * 1024 - heap - 10 * 1024;
 
-    printf("Heap Size: %d Mb\n", memUpper / 1024 / 1024);
-
+    //printf("Heap Size: %d Mb\n", memUpper / 1024 / 1024);
     
     pm.Activate();
 
-    LinkedMemoryHeap linkedHeap(heap, memUpper);
+    //printf("Page Table Starts At: %x\n", &pm);
+
+    LinkedMemoryHeap linkedHeap(heap, 400);
     kernelHeap = &linkedHeap;
+
+    int* arr1 = new int[25];
+    int* arr2 = new int[50];
+    int* arr3 = new int[25];
+    int* arr4 = new int[10];
+
+    //printf("%d %d %d %d\n", arr1, arr2, arr3, arr4);
+
+    delete[] arr2;
+    arr3 = new int[25];
+    arr2 = new int[10];
+    //printf("%d %d %d %d\n", arr1, arr2, arr3, arr4);
 
     DriverManager drivers;
 

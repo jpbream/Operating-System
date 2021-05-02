@@ -77,6 +77,7 @@ void LinkedMemoryHeap::Free(void* ptr)
             traveller->next = traveller->next->next;
             return;
         }
+        traveller = traveller->next;
     } 
 }
 

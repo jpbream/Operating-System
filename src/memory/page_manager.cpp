@@ -35,26 +35,17 @@ void PageManager::InitKernelPage(Page* page, uint32_t pageAddress)
 
 void PageManager::Activate()
 {
-    for (int i = 0; i < 1024; ++i) { // zero out the kernel page directory
-        *(uint32_t*)&(kernelDirectory.directories[i]) = 0;
-    }
-
-    for (int j = 0; j < 1024; ++j) {
-    for (int i = 0; i < 1024; ++i) { // zero out the first kernel page table
-        *(uint32_t*)&(tables[j].pages[i]) = 0;
-    }
-    }
-
     for (int i = 0; i < 1024; ++i) {
         InitKernelPageDirectory(&kernelDirectory.directories[i], (uint32_t)(&tables[i]) >> 12);
+
+        for (int j = 0; j < 1024; ++j) {
+            InitKernelPage(&(tables[i].pages[j]), 1024 * i + j);
+        }
     }
 
-    for (int j = 0; j < 1024; ++j) {
-    for (int i = 0; i < 1024; ++i) {
-        InitKernelPage(&(tables[j].pages[i]), 0x1000 * j + i);
-    }
-    }
+    extern bool VerifyPaging(uint32_t cr3);
+    // VerifyPaging(&kernelDirectory);
 
-    printf("Starting paging\n");
+    printf("Starting paging.\n");
     EnablePaging(&kernelDirectory);
 }
