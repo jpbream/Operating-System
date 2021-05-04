@@ -63,6 +63,9 @@ public:
     int Reset() override;
     CPUState* Handle(uint8_t interrupt, CPUState* regs) override;
 
+    void Send(uint8_t* buffer, int count);
+    void Receive();
+
 };
 
 #endif

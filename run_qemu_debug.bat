@@ -11,4 +11,6 @@ qemu-system-i386                                      ^
   -no-reboot -no-shutdown                             ^
   -d guest_errors                                     ^
   -S                                                  ^
-  -s
+  -s                                                  ^
+  -net nic,model=pcnet                                ^
+  -net user

@@ -8,4 +8,6 @@ qemu-system-i386                                 ^
   -smp 1                                         ^
   -usb                                           ^
   -vga std                                       ^
-  -no-reboot -no-shutdown                        
+  -no-reboot -no-shutdown                        ^
+  -net nic,model=pcnet                           ^
+  -net user

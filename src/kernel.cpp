@@ -24,6 +24,7 @@
 #include "page_manager.h"
 #include "memory_heap.h"
 #include "linked_memory_heap.h"
+#include "amd_am79c973.h"
 
 #define TEXT_MODE true
 
@@ -102,7 +103,7 @@ extern "C" void kernelMain(multiboot_info_t* info, uint32_t magicNumber) {
 
     //printf("Page Table Starts At: %x\n", &pm);
 
-    LinkedMemoryHeap linkedHeap(heap, 400);
+    LinkedMemoryHeap linkedHeap(heap, memUpper);
     kernelHeap = &linkedHeap;
 
     int* arr1 = new int[25];
@@ -120,7 +121,7 @@ extern "C" void kernelMain(multiboot_info_t* info, uint32_t magicNumber) {
     DriverManager drivers;
 
     PCI pci;
-    //pci.SelectDrivers(&drivers, &idt);
+    pci.SelectDrivers(&drivers, &idt);
 
     Desktop desktop(
         info->framebuffer_width > 400 ? info->framebuffer_width : 320, 
@@ -164,7 +165,7 @@ extern "C" void kernelMain(multiboot_info_t* info, uint32_t magicNumber) {
     drivers.ActivateAll();
 
     EnableInterrupts();
-
+    
     while (true) {
         if (! TEXT_MODE) {
             desktop.Draw(gfx);

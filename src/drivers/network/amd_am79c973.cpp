@@ -99,7 +99,10 @@ CPUState* AMDAM79C973::Handle(uint8_t interrupt, CPUState* regs)
     if (temp & 0x2000) printf("Collision Error\n");
     if (temp & 0x1000) printf("Missed Frame\n");
     if (temp & 0x0800) printf("Memory Error\n");
-    if (temp & 0x0400) printf("Data Received\n");
+    if (temp & 0x0400) {
+        printf("Data Received\n");
+        Receive();
+    }
     if (temp & 0x0200) printf("Data Sent\n");
 
     registerAddress.Write16(0);
@@ -108,4 +111,51 @@ CPUState* AMDAM79C973::Handle(uint8_t interrupt, CPUState* regs)
     if (temp & 0x0100) printf("Init Done\n");
 
     return regs;
+}
+
+void AMDAM79C973::Send(uint8_t* buffer, int size)
+{
+    int sendDescriptor = currentSendBuffer;
+    currentSendBuffer = (currentSendBuffer + 1) % 8; // cycle to the next send buffer
+
+    if (size > 1518) { // limit the size we can send
+        size = 1518;
+    }
+
+    // copy data from end to start
+    for (uint8_t* src = buffer + size - 1, 
+            *dst = (uint8_t*)(sendBufferDesc[sendDescriptor].address + size - 1);
+            src >= buffer; src--, dst--)
+    {
+        *dst = *src;
+    }
+
+    sendBufferDesc[sendDescriptor].available = 0;
+    sendBufferDesc[sendDescriptor].flags2 = 0;
+    sendBufferDesc[sendDescriptor].flags = 0x8300F000 
+                                            | ((uint16_t)((-size) & 0xFFF));
+    registerAddress.Write16(0);
+    registerData.Write16(0x48);
+}
+
+void AMDAM79C973::Receive()
+{
+    for(; (receiveBufferDesc[currentRecvBuffer].flags & 0x80000000) == 0 
+            ; currentRecvBuffer = (currentRecvBuffer + 1) % 8) 
+    {
+        if (!(receiveBufferDesc[currentRecvBuffer].flags & 0x40000000)
+            && (receiveBufferDesc[currentRecvBuffer].flags & 0x03000000) == 0x03000000)
+        {
+            uint32_t size = receiveBufferDesc[currentRecvBuffer].flags & 0xFFF;
+            if (size > 64) {
+                size -= 4; // remove the checksum
+            }
+
+            uint8_t* buffer = (uint8_t*)(receiveBufferDesc[currentRecvBuffer].address);
+            printf("DATA: %s\n", buffer);
+        }
+
+        receiveBufferDesc[currentRecvBuffer].flags2 = 0;
+        receiveBufferDesc[currentRecvBuffer].flags = 0x8000F7FF;
+    }
 }
