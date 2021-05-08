@@ -13,4 +13,5 @@ qemu-system-i386                                      ^
   -S                                                  ^
   -s                                                  ^
   -net nic,model=pcnet                                ^
-  -net user
+  -net user                                           ^
+  -drive format=raw,media=disk,file=Disk.vmdk

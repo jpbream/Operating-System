@@ -25,6 +25,7 @@
 #include "memory_heap.h"
 #include "linked_memory_heap.h"
 #include "amd_am79c973.h"
+#include "ata.h"
 
 #define TEXT_MODE true
 
@@ -106,18 +107,6 @@ extern "C" void kernelMain(multiboot_info_t* info, uint32_t magicNumber) {
     LinkedMemoryHeap linkedHeap(heap, memUpper);
     kernelHeap = &linkedHeap;
 
-    int* arr1 = new int[25];
-    int* arr2 = new int[50];
-    int* arr3 = new int[25];
-    int* arr4 = new int[10];
-
-    //printf("%d %d %d %d\n", arr1, arr2, arr3, arr4);
-
-    delete[] arr2;
-    arr3 = new int[25];
-    arr2 = new int[10];
-    //printf("%d %d %d %d\n", arr1, arr2, arr3, arr4);
-
     DriverManager drivers;
 
     PCI pci;
@@ -150,6 +139,23 @@ extern "C" void kernelMain(multiboot_info_t* info, uint32_t magicNumber) {
         kbd.SetEventHandler(&desktop);
         mouse.SetEventHandler(&desktop);
     }
+
+    ATA ata0m(0x1F0, true);
+    printf("ATA Primary Master: ");
+    ata0m.Identify();
+    ATA ata0s(0x1F0, false);
+    printf("ATA Primary Slave: ");
+    ata0s.Identify();
+
+    char buffer[] = "First time writing to disk.";
+    ata0s.Write28(0, (uint8_t*)buffer, sizeof(buffer));
+    ata0s.Flush();
+
+    char* receive = new char[512];
+    ata0s.Read28(0, (uint8_t*)receive, 512);
+
+    ATA ata1m(0x170, true);
+    ATA ata1s(0x170, false);
 
     GraphicsContext* gfx;
     if (info->framebuffer_width > 400) {
