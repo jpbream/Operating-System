@@ -26,6 +26,7 @@
 #include "linked_memory_heap.h"
 #include "amd_am79c973.h"
 #include "ata.h"
+#include "partition_table.h"
 
 #define TEXT_MODE true
 
@@ -147,15 +148,18 @@ extern "C" void kernelMain(multiboot_info_t* info, uint32_t magicNumber) {
     printf("ATA Primary Slave: ");
     ata0s.Identify();
 
-    char buffer[] = "First time writing to disk.";
-    ata0s.Write28(0, (uint8_t*)buffer, sizeof(buffer));
-    ata0s.Flush();
-
-    char* receive = new char[512];
-    ata0s.Read28(0, (uint8_t*)receive, 512);
-
     ATA ata1m(0x170, true);
     ATA ata1s(0x170, false);
+
+    PartitionTable pTable(&ata0s);
+    Partition partitions[4];
+    partitions[0] = pTable.GetPartition(0);
+    partitions[1] = pTable.GetPartition(1);
+    partitions[2] = pTable.GetPartition(2);
+    partitions[3] = pTable.GetPartition(3);
+
+    printf("%x\n", partitions[0].startLba);
+    printf("%x\n", partitions[0].length);
 
     GraphicsContext* gfx;
     if (info->framebuffer_width > 400) {

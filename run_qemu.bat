@@ -4,7 +4,7 @@ qemu-system-i386                                 ^
   -m 128                                         ^
   -no-reboot                                     ^
   -drive format=raw,media=cdrom,file=os.iso      ^
-  -drive format=raw,media=disk,file=Disk.vmdk    ^
+  -drive format=raw,media=disk,file=Disk.vhd     ^
   -serial stdio                                  ^
   -smp 1                                         ^
   -usb                                           ^
