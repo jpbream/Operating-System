@@ -27,6 +27,7 @@
 #include "amd_am79c973.h"
 #include "ata.h"
 #include "partition_table.h"
+#include "fat.h"
 
 #define TEXT_MODE true
 
@@ -160,6 +161,8 @@ extern "C" void kernelMain(multiboot_info_t* info, uint32_t magicNumber) {
 
     printf("%x\n", partitions[0].startLba);
     printf("%x\n", partitions[0].length);
+
+    FAT fileSystem(&ata0s, partitions[0]);
 
     GraphicsContext* gfx;
     if (info->framebuffer_width > 400) {

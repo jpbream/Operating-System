@@ -79,15 +79,8 @@ void ATA::Read28(uint32_t sector, uint8_t* data, int count)
         status = command.Read8();
     }
 
-    printf("Reading: ");
-
     for (int i = 0; i < count; i += 2) {
         uint16_t input = data16.Read16();
-
-        char* str = "  \0";
-        str[1] = (input >> 8) & 0x00FF;
-        str[0] = input & 0x00FF;
-        printf("%s", str);
 
         data[i] = input & 0xFF;
         if (i + 1 < count) {
@@ -99,8 +92,6 @@ void ATA::Read28(uint32_t sector, uint8_t* data, int count)
     for (int i = count + (count % 2); i < SEC_SIZE; ++i) {
         data16.Read16();
     }
-
-    printf("\n");
 }
 
 void ATA::Write28(uint32_t sector, uint8_t* data, int count)
@@ -117,19 +108,12 @@ void ATA::Write28(uint32_t sector, uint8_t* data, int count)
     lbaHigh.Write8((sector & 0xFF0000) >> 16);
     command.Write8(0x30); // write command
 
-    printf("Writing: ");
-
     for (int i = 0; i < count; i += 2) {
         uint16_t output = data[i];
 
         if (i + 1 < count) {
             output |= data[i + 1] << 8;
         }
-
-        char* str = "  \0";
-        str[1] = (output >> 8) & 0x00FF;
-        str[0] = output & 0x00FF;
-        printf("%s", str);
 
         data16.Write16(output);
     }
@@ -138,8 +122,6 @@ void ATA::Write28(uint32_t sector, uint8_t* data, int count)
     for (int i = count + (count % 2); i < SEC_SIZE; ++i) {
         data16.Write16(0x0000);
     }
-
-    printf("\n");
 }
 
 void ATA::Flush()
@@ -147,17 +129,13 @@ void ATA::Flush()
     device.Write8(master ? 0xE0 : 0xF0);
     command.Write8(0xE7); // flush
 
-    printf("Flushing: ");
-
     uint8_t status = command.Read8();
     while (status & 0x80 && !(status & 0x01)) {
         status = command.Read8();
     }
 
     if (status & 0x01) {
-        printf("ERROR\n");
+        printf("ERROR Flushing\n");
         return;
     }
-
-    printf("\n");
 }
