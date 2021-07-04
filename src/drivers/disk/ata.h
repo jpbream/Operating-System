@@ -1,12 +1,13 @@
 #ifndef _ATA_H_
 #define _ATA_H_
 
+#include "hard_disk.h"
 #include "port.h"
 #include <stdint.h>
 
 #define SEC_SIZE 512
 
-class ATA
+class ATA : public HardDisk
 {
 private:
     Port data16;
@@ -24,10 +25,10 @@ private:
 public:
     ATA(uint16_t portBase, bool master);
 
-    void Identify();
-    void Read28(uint32_t sector, uint8_t* data, int count);
-    void Write28(uint32_t sector, uint8_t* data, int count);
-    void Flush();
+    void Identify() override;
+    void Read(uint32_t sector, uint8_t* data, int count) override;
+    void Write(uint32_t sector, uint8_t* data, int count) override;
+    void Flush() override;
 
 };
 

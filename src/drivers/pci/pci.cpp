@@ -146,9 +146,11 @@ Driver* PCI::GetDriver(PCIDevice* device, IDT* idt)
     switch (device->vendorId) {
         case 0x1022: // AMD
             switch (device->deviceId) {
+#ifndef QEMU
                 case 0x2000: // AMD am79c973
                 driver = new AMDAM79C973(device, idt);
                 break;
+#endif
             }
             break;
     }

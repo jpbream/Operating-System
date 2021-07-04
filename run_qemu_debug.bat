@@ -3,7 +3,8 @@ qemu-system-i386                                      ^
   -cpu kvm32,+avx,+pdpe1gb,+sse,+sse2,+xsave,+fpu     ^
   -m 128                                              ^
   -no-reboot                                          ^
-  -kernel os.bin                                      ^
+  -drive format=raw,media=cdrom,file=os.iso           ^
+  -drive format=raw,media=disk,file=Disk.vhd          ^
   -serial stdio                                       ^
   -smp 1                                              ^
   -usb                                                ^

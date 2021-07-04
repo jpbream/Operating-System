@@ -60,7 +60,7 @@ void ATA::Identify()
     printf("\n");
 }
 
-void ATA::Read28(uint32_t sector, uint8_t* data, int count)
+void ATA::Read(uint32_t sector, uint8_t* data, int count)
 {
     if (sector & 0xF0000000 || count > SEC_SIZE) {
         return;
@@ -94,7 +94,7 @@ void ATA::Read28(uint32_t sector, uint8_t* data, int count)
     }
 }
 
-void ATA::Write28(uint32_t sector, uint8_t* data, int count)
+void ATA::Write(uint32_t sector, uint8_t* data, int count)
 {
     if (sector & 0xF0000000 || count > SEC_SIZE) {
         return;

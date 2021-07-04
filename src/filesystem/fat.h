@@ -1,7 +1,6 @@
 #ifndef _FAT_H_
 #define _FAT_H_
 
-#include "ata.h"
 #include "partition_table.h"
 
 class FAT
@@ -59,13 +58,12 @@ private:
 
     } __attribute__((packed));
 
-    ATA* drive;
-    Partition partition;
+    Partition* partition;
 
     void ReadBiosBlock();
 
 public:
-    FAT(ATA* drive, Partition partition);
+    FAT(Partition* partition);
 };
 
 #endif

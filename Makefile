@@ -15,7 +15,7 @@ OBJS := $(subst $(SOURCEDIR),$(BUILDDIR),$(patsubst %.cpp,%.o,$(patsubst %.asm,%
 
 C_OPTIONS = @c_options $(INCLUDES) -D $(ENV)
 CPP_OPTIONS = @cpp_options $(INCLUDES) -D $(ENV)
-ASM_OPTIONS = -f elf -D $(ENV)
+ASM_OPTIONS = -g -F dwarf -f elf -D $(ENV)
 LINK_OPTIONS = -melf_i386 -L $(OUTPUT)/lib/ -lgcc
 
 $(BUILDDIR)/%.o: $(SOURCEDIR)/%.cpp
@@ -26,6 +26,11 @@ $(BUILDDIR)/%.o: $(SOURCEDIR)/%.c
 
 $(BUILDDIR)/%.o: $(SOURCEDIR)/%.asm
 	@nasm -o $@ $< $(ASM_OPTIONS)
+
+os.iso: os.bin
+	@cp os.bin image/boot/os.bin
+	@cp grub.cfg image/boot/grub/grub.cfg
+	@grub-mkrescue -o os.iso image
 
 os.bin: dirs link.ld $(OBJS)
 	@ld -T link.ld -o $(OUTPUT)/os.bin $(OBJS) $(LINK_OPTIONS)

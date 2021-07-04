@@ -1,12 +1,53 @@
 #include "partition_table.h"
 
-PartitionTable::PartitionTable(ATA* drive)
+PartitionTable::PartitionTable(HardDisk* drive)
 {
     this->drive = drive;
-    drive->Read28(0, (uint8_t*)&mbr, sizeof(MasterBootRecord));
+    drive->Read(0, (uint8_t*)&mbr, sizeof(MasterBootRecord));
 }
 
-Partition PartitionTable::GetPartition(int idx)
+PartitionTable::~PartitionTable()
 {
-    return mbr.partitions[idx];
+    drive->Flush();
+}
+
+Partition::Partition(PartitionTable* table, int idx)
+{
+    this->disk = table->drive;
+    this->partition = table->mbr.partitions[idx];
+}
+
+Partition::~Partition()
+{
+    disk->Flush();
+}
+
+bool Partition::Write(uint32_t sector, uint8_t* data, int count)
+{
+    if (sector == 0 || sector < partition.startLba || sector > partition.startLba + partition.length) {
+        return false;
+    }
+
+    disk->Write(sector, data, count);
+    return true;
+}
+
+bool Partition::Read(uint32_t sector, uint8_t* data, int count)
+{
+    if (sector < partition.startLba || sector > partition.startLba + partition.length) {
+        return false;
+    }
+
+    disk->Read(sector, data, count);
+    return true;
+}
+
+uint32_t Partition::SectorStart()
+{
+    return partition.startLba;
+}
+
+uint32_t Partition::SectorSpan()
+{
+    return partition.length;
 }

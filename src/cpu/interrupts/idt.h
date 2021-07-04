@@ -43,7 +43,7 @@ private:
 
     DefaultExceptionHandler defExceptionHandler;
     DefaultInterruptHandler defInterruptHandler;
-    InterruptHandler* handlers[256];
+    InterruptHandler* handlers[256] __attribute__((aligned(8)));
     TaskManager* taskManager;
 
     void CreateSelector(

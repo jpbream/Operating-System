@@ -153,16 +153,12 @@ extern "C" void kernelMain(multiboot_info_t* info, uint32_t magicNumber) {
     ATA ata1s(0x170, false);
 
     PartitionTable pTable(&ata0s);
-    Partition partitions[4];
-    partitions[0] = pTable.GetPartition(0);
-    partitions[1] = pTable.GetPartition(1);
-    partitions[2] = pTable.GetPartition(2);
-    partitions[3] = pTable.GetPartition(3);
+    Partition partition(&pTable, 0);
 
-    printf("%x\n", partitions[0].startLba);
-    printf("%x\n", partitions[0].length);
+    printf("%x\n", partition.SectorStart());
+    printf("%x\n", partition.SectorSpan());
 
-    FAT fileSystem(&ata0s, partitions[0]);
+    FAT fileSystem(&partition);
 
     GraphicsContext* gfx;
     if (info->framebuffer_width > 400) {

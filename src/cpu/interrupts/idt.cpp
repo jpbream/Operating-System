@@ -115,7 +115,7 @@ CPUState* IDT::HandleInterrupt(uint8_t interrupt, CPUState* regs)
         (handlers[interrupt])->Handle(interrupt, regs);
     }
     else if (interrupt != HARDWARE_OFFSET) {
-        printf("UNHANDLED INTERRUPT\n");
+        printf("UNHANDLED INTERRUPT: %d\n", interrupt);
     }
 
     if ( interrupt >= HARDWARE_OFFSET && interrupt < HARDWARE_OFFSET + 16 ) {

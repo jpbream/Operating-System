@@ -7,20 +7,23 @@ class GDT {
 
 private:
     
-    class GDT_Selector {
+    static constexpr int NUM_SELECTORS = 10;
 
-    private:
-        uint16_t limit_lo;
-        uint16_t base_lo;
-        uint8_t base_mid;
-        uint8_t access;
-        uint8_t flags;
-        uint8_t base_hi;
+    struct GDT_Selector {
 
-    public:
-        GDT_Selector(uint32_t base, uint32_t limit, uint8_t access, uint8_t flags);
+        uint64_t limit_lo : 16;
+        uint64_t base_lo : 16;
+        uint64_t base_mid : 8;
+        uint64_t access : 8;
+        uint64_t limit_mid : 4;
+        uint64_t flags : 4;
+        uint64_t base_hi : 8;
 
     } __attribute__((packed));
+
+    void InitSelector(GDT_Selector* selector, uint32_t base, uint32_t limit, uint8_t access, uint8_t flags);
+    uint8_t CreateAccess(uint8_t present, uint8_t privl, uint8_t type, uint8_t exe, uint8_t dirCon, uint8_t rw);
+    uint8_t CreateFlags(uint8_t gran, uint8_t size, uint8_t available);
 
     struct GDT_Pointer {
 
@@ -29,10 +32,7 @@ private:
 
     } __attribute__((packed));
 
-    GDT_Selector null;
-    GDT_Selector unused;
-    GDT_Selector code;
-    GDT_Selector data;
+    GDT_Selector selectors[NUM_SELECTORS] __attribute__((aligned(8)));
 
 public:
 
